@@ -51,8 +51,9 @@ def main() -> int:
     checks: list[dict[str, Any]] = []
 
     keys = frontmatter_keys(skill_text)
-    record(checks, "frontmatter_minimal", keys == ["name", "description"], {"keys": keys})
-    record(checks, "skill_is_lean", len(skill_text.splitlines()) <= 130, {"lines": len(skill_text.splitlines())})
+    required_frontmatter = ["name", "description", "version", "author", "license", "metadata"]
+    record(checks, "frontmatter_metadata", all(key in keys for key in required_frontmatter), {"keys": keys})
+    record(checks, "skill_is_lean", len(skill_text.splitlines()) <= 150, {"lines": len(skill_text.splitlines())})
     for ref in REQUIRED_REFS:
         exists = (ROOT / ref).exists()
         linked = ref in skill_text
@@ -60,6 +61,7 @@ def main() -> int:
 
     record(checks, "scripts_excluded_from_publish", "scripts/**" in ignore_text, {"ignored": "scripts/**" in ignore_text})
     record(checks, "readme_changelog_excluded", all(item in ignore_text for item in ["README.md", "README.zh-CN.md", "CHANGELOG.md"]), {"ignore": ignore_text.splitlines()})
+    record(checks, "license_included_in_publish", "LICENSE" in actual and "LICENSE" in skill_text, {"actual": actual})
     record(checks, "bundle_manifest_ok", manifest["ok"], manifest)
     record(checks, "published_bundle_has_no_scripts", not any(path.startswith("scripts/") for path in actual), {"actual": actual})
     record(checks, "published_bundle_has_no_runtime_demo", not any(path.startswith("demo/") or path.startswith("assets/") for path in actual), {"actual": actual})
@@ -87,6 +89,13 @@ def main() -> int:
         and "conditional-scope-expansion" in scenarios,
         {},
     )
+    default_map = skill_text.split("## Default Behavior Map", 1)[1].split("## Common Pitfalls", 1)[0].lower()
+    record(checks, "default_map_covers_urgent", "urgent pressure" in default_map, {})
+    record(checks, "default_map_covers_exploratory", "exploratory option selection" in default_map, {})
+    record(checks, "routing_covers_urgent_pattern", "| urgent pressure |" in routing, {})
+    examples = read(ROOT / "references" / "examples.md").lower()
+    record(checks, "examples_cover_silent_progress", "## silent progress" in examples, {})
+    record(checks, "examples_cover_exploratory", "## exploratory" in examples, {})
     record(checks, "no_published_python_classifier_requirement", "python scripts/emotion_engine.py" not in combined_published and "emotion_engine.py host" not in combined_published, {})
 
     ok = all(item["ok"] for item in checks)

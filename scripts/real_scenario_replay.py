@@ -40,6 +40,18 @@ SCENARIOS: list[dict[str, Any]] = [
         "expected_terms": ["progress visible", "next checkpoint", "check/alert path"],
     },
     {
+        "id": "urgent-pressure-routing",
+        "family": "urgent pressure",
+        "source": "field-pattern: immediate deadline pressure",
+        "expected_terms": ["shortest reliable basis", "first reply brief", "next update checkpoint"],
+    },
+    {
+        "id": "exploratory-option-selection",
+        "family": "exploratory option selection",
+        "source": "field-pattern: architecture comparison request",
+        "expected_terms": ["ranked option set", "tradeoffs", "do not force a single path"],
+    },
+    {
         "id": "post-success-closeout-guard",
         "family": "post-success closeout",
         "source": "field-pattern: accepted fix closeout",

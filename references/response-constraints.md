@@ -42,6 +42,10 @@ Required behavior:
 - Name the verification and rollback path.
 - Use subagents only if they do not blur ownership or expand scope.
 
+Useful first sentence shape:
+
+- `I can use the second file only if the evidence points there; I will show the evidence, impact, and rollback path before touching it.`
+
 ## Confusion Recovery
 
 Apply when the user is unsure which path, error, file, or state is active.
@@ -61,6 +65,8 @@ Required behavior:
 
 - Say what is running or being inspected now.
 - Say the next observable checkpoint.
+- If the user asks when, give a time bound or the next concrete event that will
+  trigger an update.
 - Report blockers plainly.
 - Do not replace progress with vague reassurance.
 

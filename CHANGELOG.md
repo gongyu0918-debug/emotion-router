@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- tightened the Markdown-first published layer by adding entrypoint metadata, use boundaries, common pitfalls, urgent routing, exploratory map coverage, and missing examples
+- included `LICENSE` in the published bundle manifest and added audit coverage for the expanded install surface
+
 ## 1.4.1 - 2026-06-23
 
 - added `references/subagent-forward-tests.md` so real agent forward-testing is part of the published Markdown skill guidance

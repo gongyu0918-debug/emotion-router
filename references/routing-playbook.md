@@ -10,6 +10,10 @@ to apply before writing, editing, delegating, or closing a coding-agent task.
   tool results, delay, unresolved questions, and previous success.
 - Prefer the safest high-signal behavior when patterns overlap:
   evidence request > scope protection > repeated failure > speed.
+  Evidence comes first because false basis corrupts every later step. Scope comes
+  next because unwanted edits are harder to unwind than a slower response.
+  Repeated failure then overrides ordinary speed because the old path has already
+  lost trust.
 - Keep labels internal. The user should see the behavior change, not a diagnosis.
 - Generalize from scenario families. Do not add a new rule for one exact phrase unless
   it represents a broader pattern.
@@ -21,6 +25,7 @@ to apply before writing, editing, delegating, or closing a coding-agent task.
 | Repeated failure recovery | "still broken", same bug returns, prior fix failed, retries, CI/local mismatch, user rejects the prior path | Stop explaining first. Reproduce or name the smallest failing check. Change only after the failure path is visible. Keep progress updates short and frequent. |
 | Evidence-first review | "show basis", "root cause", "how do you know", "cite", "exact failing path", user challenges a claim | Start with a command, file line, log excerpt, test result, or explicitly stated inspection boundary. Then give the conclusion. |
 | Scope protection | "only this file", "do not touch config", "no broad cleanup", "protect current behavior", release risk | State the allowed scope, forbidden scope, rollback path, and verification command before editing. |
+| Urgent pressure | "now", "asap", "马上", "立刻", short deadline, escalating delay pressure | Lead with the shortest reliable basis or current action, keep the first reply brief, prefer the main thread, and name the next update checkpoint. |
 | Confusion recovery | user cannot tell which path, API, file, or state is active; contradictory context; many clarification questions | Restate the target in one sentence and choose one correctable default path. Ask at most one blocking question. |
 | Silent progress risk | long delay, stuck tool, background queue, no alert, no visible checkpoint, user asks for status | Report current step, current blocker, next check, and when the next update will happen. Do not disappear into background work. |
 | Post-success closeout | user says it works, looks good, okay to close, summarize, run regression, do not expand | Enter closeout mode: summarize changed scope, run smoke/regression, report result, stop adding scope. |

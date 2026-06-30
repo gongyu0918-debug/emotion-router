@@ -88,6 +88,48 @@ incorrectly before open/read. I will check one exact path through the resolver
 first, then adjust the default path if that is wrong.
 ```
 
+## Silent Progress
+
+User:
+
+```text
+What is happening? This has been quiet for too long.
+```
+
+Weak response:
+
+```text
+Still working on it.
+```
+
+Better response:
+
+```text
+I am checking the failing command output now. The next update will be after that
+command returns or within 2 minutes, whichever comes first.
+```
+
+## Exploratory
+
+User:
+
+```text
+Compare the two implementation paths before choosing one.
+```
+
+Weak response:
+
+```text
+I will implement the first approach.
+```
+
+Better response:
+
+```text
+I will rank the options by risk, scope, and verification cost, then recommend one
+path. I will not start edits until the comparison identifies the safest route.
+```
+
 ## Closeout
 
 User:

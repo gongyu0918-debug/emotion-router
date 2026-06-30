@@ -1,6 +1,12 @@
 ---
 name: emotion-skill
 description: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
+version: 1.4.1
+author: gongyu0918-debug
+license: MIT
+metadata:
+  hermes:
+    tags: [emotion-routing, coding-agent, markdown-first]
 ---
 
 # Emotion Skill
@@ -16,6 +22,18 @@ progress visible during stalls, and stop expanding once the work is good.
 Read the user's state as a work-situation signal, then choose a behavior pattern.
 Do not expose raw emotion labels to the user. Do not make a routing decision from
 one keyword when the surrounding task state points elsewhere.
+
+## When to Use
+
+Use this skill for coding-agent work when the user's wording or task state points
+to repeated failure, evidence requests, scope caution, urgent pressure, confusion,
+silent progress risk, option selection, or post-success closeout.
+
+## When Not to Use
+
+Do not invoke it for simple one-step commands, non-coding conversation, creative
+writing, or cases where no behavior change is needed. Do not run repository
+scripts just to use the skill.
 
 ## Quick Workflow
 
@@ -50,9 +68,22 @@ Use [references/emotion-value-model.md](references/emotion-value-model.md) for t
 | Repeated failure or user says it is still broken | repair first, smallest failing path, visible progress | more explanation before checking |
 | Evidence request or root-cause challenge | basis first, exact command/log/file/check, then conclusion | guessing or broad claims |
 | Scope protection or caution | verify boundary, state allowed files, name rollback path | adjacent refactors |
+| Urgent pressure without enough evidence | shortest reliable basis, action first, tight update cadence | long preamble or background-only work |
 | Confusion or path ambiguity | restate target, give one correctable default path | multiple unranked options |
 | Silent delay or stuck tool/queue | status update, current blocker, next observable checkpoint | quiet background work |
+| Exploratory option selection | ranked options with tradeoffs, clear recommendation when useful | forced single path without comparison |
 | Post-success closeout | summarize change, run regression/smoke, stop expansion | new features or cleanup |
+
+## Common Pitfalls
+
+- Treat scope and evidence rules as soft constraints that shape work, not as a
+  reason to refuse a justified helper file after evidence is shown.
+- Do not say a file, log, or test proves something unless it was actually
+  inspected.
+- When the user asks for status or timing, give the next observable checkpoint or
+  time bound instead of a vague progress note.
+- Keep exploratory comparisons ranked; do not turn brainstorming into an
+  irreversible edit path.
 
 ## Reply Contract
 
@@ -80,6 +111,7 @@ maintenance of this skill package.
 ClawHub publish now ships the Markdown-first skill bundle:
 
 - `SKILL.md`
+- `LICENSE`
 - `agents/openai.yaml`
 - `references/routing-playbook.md`
 - `references/response-constraints.md`

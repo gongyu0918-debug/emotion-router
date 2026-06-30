@@ -13,9 +13,16 @@ User-state signals should change work order:
 | repeated failure | stop the old path, find the smallest failing check |
 | evidence request | put basis before conclusion |
 | scope protection | reduce accidental edits and config drift |
+| urgent pressure | move action earlier without hiding the minimum reliable basis |
 | confusion | align target before adding options |
 | silent progress | surface blocker and next checkpoint |
+| exploratory comparison | rank options before committing to a path |
 | accepted fix | close with regression check instead of new work |
+
+Priority order matters. Evidence beats speed because a fast answer with a false
+basis creates more rework. Scope beats speed because unwanted edits are harder to
+undo than a short delay. Repeated failure beats ordinary flow because the old path
+has already lost trust.
 
 ## Quality Value
 
