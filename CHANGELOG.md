@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.4.2 - 2026-07-04
 
 - tightened the Markdown-first published layer by adding entrypoint metadata, use boundaries, common pitfalls, urgent routing, exploratory map coverage, and missing examples
 - included `LICENSE` in the published bundle manifest and added audit coverage for the expanded install surface
+- renamed the published agent display name to `Emotion Router` while keeping the package slug `emotion-skill`
 
 ## 1.4.1 - 2026-06-23
 

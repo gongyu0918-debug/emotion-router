@@ -1,7 +1,7 @@
 ---
 name: emotion-skill
 description: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
-version: 1.4.1
+version: 1.4.2
 author: gongyu0918-debug
 license: MIT
 metadata:

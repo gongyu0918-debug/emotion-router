@@ -1,8 +1,8 @@
 interface:
-  display_name: "情绪.skill / Emotion Skill"
+  display_name: "Emotion Router"
   short_description: "Markdown-first playbook for coding agents under pressure: evidence first, scope tight, urgent action brief, progress visible, closeout guarded."
   default_prompt: "Use $emotion-skill when a coding-agent task involves repeated failure, evidence requests, scoped edits, urgent pressure, silent delay, confusion, option comparison, or post-success closeout. Read SKILL.md first, then load only the matching reference: routing-playbook, response-constraints, real-scenarios, subagent-forward-tests, model-prompts, integration notes, examples, or value model. Apply the behavior directly; do not require a Python classifier."
-  version: "1.4.1"
+  version: "1.4.2"
   author: "gongyu0918-debug"
   license: "MIT"
 
