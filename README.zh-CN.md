@@ -1,56 +1,46 @@
-# 情绪.skill / Emotion Skill
+# 情绪路由 / Emotion Router
 
 [English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
 
-给高压 Coding Agent 场景使用的 Markdown-first 技能。
+面向 Coding Agent 的 Markdown-first 轻量情绪路由 skill。触发边界只看当前用户 prompt 和当前 context window：急迫、愤怒/挫败、困惑。
 
-这个 skill 的重点不是运行 Python 情绪分类器，而是给 agent 一套人和模型都能读懂的说明书：用户反复说没修好、要求依据、保护范围、等待无反馈、路径困惑或准备收口时，agent 应该如何路由、如何回复、如何验证、如何停止扩 scope。
+Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把它转成 agent 下一步回复、工作顺序和验证方式。
 
 ## 为什么值得装
 
-Coding Agent 常在这些时刻掉质量：
+用户负面情绪和时间压力容易让模型进入不稳定工作流：防御、解释过度、猜测、跑偏或扩大范围。
 
-- 用户说同一个 bug 还在，Agent 继续解释。
-- 用户要依据，Agent 继续猜。
-- 用户要求只改一个文件，Agent 顺手动旁边配置。
-- 工具或队列静默很久，Agent 没给进度。
-- 用户说已经好了，Agent 又开新改动。
+情绪路由只保留三条路线：
 
-这个 skill 把这些场景转成可读的 routing 和 response 规则。
+- **急迫**：最快最小路径满足 prompt，再做最快最小验证。
+- **愤怒/挫败**：先止损，找出失败点，给最小修复路径。
+- **困惑**：说明现在正在做什么、当前卡点是什么、下一步是什么，用通俗语言恢复工作节奏。
 
 ## 结构
 
 ClawHub 发布包：
 
-- `SKILL.md`：触发说明、主流程和 reference 索引
+- `SKILL.md`：触发边界、优先级和路由选择
 - `agents/openai.yaml`：界面元数据和默认调用提示
-- `references/routing-playbook.md`：主路由、状态模式和冲突优先级
-- `references/response-constraints.md`：依据优先、范围保护、进度、收口门禁
-- `references/real-scenarios.md`：真实场景族，用于避免一例一修
-- `references/subagent-forward-tests.md`：真实 agent 前向测试协议
-- `references/model-prompts.md`：宿主需要时可用的紧凑 prompt overlay
-- `references/integration-openclaw-hermes.md`：OpenClaw/Hermes 接入说明
-- `references/examples.md`：前后对比示例
-- `references/emotion-value-model.md`：价值和评估口径
+- `references/emotion-routes.md`：三路由的信号、prompt 引导、禁止行为和示例开句
 
 GitHub 仓库额外保留：
 
-- `scripts/`：回归、审计、真实场景和历史 runtime 验证工具
-- `assets/`：校准和长尾案例材料
-- `demo/`：本地 legacy runtime 检查样例
-- 不进入安装包的研究和历史 reference
+- `scripts/`：发布检查、审计和 legacy runtime 回归测试
+- `references/`：旧设计说明和不进入安装包的验证参考
+- `assets/`、`demo/`、`reports/`：校准材料、本地样例和测试证据
 
 ## 使用方式
 
 在支持 skills 的 agent 中：
 
 ```text
-Use $emotion-skill when the user asks for evidence, repeats a failed bug,
-protects scope, waits through a delay, is confused by a path, or asks to close
-out after success.
+Use $emotion-skill when the current user prompt or visible context shows urgency,
+anger/frustration, or confusion. Pick one route and apply the matching prompt
+pattern. Do not run a Python classifier.
 ```
 
-Agent 应先读 `SKILL.md`，再只加载匹配当前场景的 reference。不应要求用户或 agent 先运行 Python 分类器。
+Agent 应先读 `SKILL.md`，再加载 `references/emotion-routes.md` 中匹配的 route。信号词只是例子，不是硬关键词触发。
 
 ## 验证
 
@@ -58,27 +48,17 @@ Agent 应先读 `SKILL.md`，再只加载匹配当前场景的 reference。不�
 
 ```bash
 python scripts/markdown_skill_audit.py
-python scripts/real_scenario_replay.py
 python scripts/bundle_manifest_check.py
 python scripts/marketplace_tag_audit.py
-python scripts/alignment_test.py
-python scripts/ablation_test.py
-python scripts/smoke_test.py --seed 20260424 --strict
-python -m compileall -q scripts
+python scripts/smoke_test.py --strict
 git diff --check
 ```
 
-验证口径：
-
-- Markdown audit 检查路由、披露和发布边界是否已经回到 Markdown-first。
-- 真实场景 replay 只做场景族结构烟测，不代表真实 agent 已按技能行动。
-- subagent forward test 才是路由准确性、软约束和非硬护栏行为的真实使用检查；实测报告放在 `reports/`。
-- bundle manifest 确认 ClawHub 只发布精简 Markdown skill。
-- legacy runtime 测试保留为回归证据，确保脚本退出安装路径时没有被误伤。
+Subagent forward test 是真实行为检查，覆盖急迫、愤怒/挫败、困惑，以及急迫+愤怒冲突。
 
 ## 边界
 
-这是 skill，不是 plugin。宿主可以基于这些 reference 做自动化，但安装后的 skill 本身应保持为人和 agent 都能直接阅读、直接执行的 Markdown 说明书。
+这是 skill，不是 plugin 或 runtime classifier。它不检查 AGENTS.md、长记忆、用户画像、隐藏历史或旧校准状态，只处理当前 prompt 和当前 context window。
 
 ## License
 

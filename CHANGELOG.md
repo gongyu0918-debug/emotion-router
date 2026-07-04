@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0 - 2026-07-05
+
+- rebuilt the skill as a lightweight three-route Markdown router for current-turn urgency, anger/frustration, and confusion
+- removed the installed-skill dependency on multi-axis routing references, long-memory framing, user profiling, AGENTS.md inspection, and runtime classifier language
+- added `references/emotion-routes.md` as the single published route reference with signals, prompt patterns, forbidden behavior, and conflict handling
+- tightened release audits so future changes preserve the three-route boundary and keep scripts as maintainer-only checks
+
 ## 1.4.4 - 2026-07-04
 
 - restored the ClawHub-facing display name and summary to the English `Emotion Router` release surface after the SkillHub/ClawHub platform mix-up

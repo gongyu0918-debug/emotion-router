@@ -8,6 +8,14 @@ demo/**
 scripts/**
 reports/**
 references/emotion-policy-matrix.md
+references/routing-playbook.md
+references/response-constraints.md
+references/real-scenarios.md
+references/subagent-forward-tests.md
+references/model-prompts.md
+references/integration-openclaw-hermes.md
+references/examples.md
+references/emotion-value-model.md
 references/feature-admission-v1.md
 references/prompt-chain-audit.md
 references/research-cues-v2.md

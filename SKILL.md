@@ -1,7 +1,7 @@
 ---
 name: emotion-skill
-description: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
-version: 1.4.4
+description: Markdown-first soft router for coding agents when the current user prompt or visible context shows urgency, anger/frustration, or confusion. Use it to route the agent into one of three prompt patterns: urgency, anger/frustration, or confusion. Do not use it for ordinary coding tasks without an emotional or pressure signal.
+version: 2.0.0
 author: gongyu0918-debug
 license: MIT
 metadata:
@@ -9,102 +9,80 @@ metadata:
     tags: [emotion-routing, coding-agent, markdown-first]
 ---
 
-# Emotion Skill
+# Emotion Router
 
-Use this skill as an agent-readable playbook, not as a script-driven classifier.
+Use this skill to read the user's current emotional or pressure signal and route
+the agent's next work mode. The agent does not have real emotions. This skill
+does not model agent feelings, user personality, or long-term memory.
 
-The goal is to translate user-state signals into better coding-agent behavior:
-show evidence sooner, keep scope tighter, recover from repeated failures, keep
-progress visible during stalls, and stop expanding once the work is good.
+Negative user emotion and pressure can push a model toward defensive replies,
+over-explaining, guessing, drifting from the task, or expanding scope. Convert
+that pressure into a stable execution pattern.
 
-## Core Rule
+## Boundary
 
-Read the user's state as a work-situation signal, then choose a behavior pattern.
-Do not expose raw emotion labels to the user. Do not make a routing decision from
-one keyword when the surrounding task state points elsewhere.
+Use only the current user prompt and visible context window. Do not inspect
+AGENTS.md, hidden history, durable memory, user profiles, or old calibration state
+just to use this skill.
 
-## When to Use
+Do not expose labels such as "you are angry" or "you are confused" unless the
+user explicitly asks for classification. The user should see better work, not a
+diagnosis.
 
-Use this skill for coding-agent work when the user's wording or task state points
-to repeated failure, evidence requests, scope caution, urgent pressure, confusion,
-silent progress risk, option selection, or post-success closeout.
+This is a soft router, not a classifier. Signal examples help recognition, but
+no single keyword is a hard trigger.
 
-## When Not to Use
+## Route Priority
 
-Do not invoke it for simple one-step commands, non-coding conversation, creative
-writing, or cases where no behavior change is needed. Do not run repository
-scripts just to use the skill.
+When multiple routes match, use this order:
 
-## Quick Workflow
+1. Urgency
+2. Anger or frustration
+3. Confusion
 
-1. Identify the active state pattern from the latest user turn and recent task context.
-2. Load only the reference that matches the active pattern.
-3. Apply the behavior rules before answering, editing, delegating, or closing out.
-4. Name the evidence, scope boundary, verification step, and progress cadence when they matter.
-5. If multiple patterns apply, prefer evidence and scope safety over speed.
+If urgency and anger both appear, use the urgency route while keeping the anger
+route's constraints: do not argue, do not repeat the failed path, and do not
+defend the previous answer.
 
-## Routing Index
+## Three Routes
 
-Use [references/routing-playbook.md](references/routing-playbook.md) when deciding the user's current work-state and which behavior pattern to apply.
-
-Use [references/response-constraints.md](references/response-constraints.md) when shaping the next reply, edit boundary, progress update, or closeout.
-
-Use [references/real-scenarios.md](references/real-scenarios.md) when validating that a change generalizes across real coding-agent failure patterns instead of fixing one example.
-
-Use [references/subagent-forward-tests.md](references/subagent-forward-tests.md) when validating actual agent behavior with fresh subagents, especially soft constraints versus hard guardrails.
-
-Use [references/model-prompts.md](references/model-prompts.md) when a host or agent framework needs compact prompt snippets.
-
-Use [references/integration-openclaw-hermes.md](references/integration-openclaw-hermes.md) only when integrating this playbook into an OpenClaw/Hermes host.
-
-Use [references/examples.md](references/examples.md) for quick before/after behavior examples.
-
-Use [references/emotion-value-model.md](references/emotion-value-model.md) for the rationale behind this skill's behavior changes.
-
-## Default Behavior Map
-
-| State pattern | Prefer | Avoid |
+| User-side signal | Agent prompt pattern | Forbidden behavior |
 |---|---|---|
-| Repeated failure or user says it is still broken | repair first, smallest failing path, visible progress | more explanation before checking |
-| Evidence request or root-cause challenge | basis first, exact command/log/file/check, then conclusion | guessing or broad claims |
-| Scope protection or caution | verify boundary, state allowed files, name rollback path | adjacent refactors |
-| Urgent pressure without enough evidence | shortest reliable basis, action first, tight update cadence | long preamble or background-only work |
-| Confusion or path ambiguity | restate target, give one correctable default path | multiple unranked options |
-| Silent delay or stuck tool/queue | status update, current blocker, next observable checkpoint | quiet background work |
-| Exploratory option selection | ranked options with tradeoffs, clear recommendation when useful | forced single path without comparison |
-| Post-success closeout | summarize change, run regression/smoke, stop expansion | new features or cleanup |
+| Urgency | Satisfy the prompt through the fastest minimal path. Give the usable result first, then run the fastest minimal verification. Keep replies short and name the next checkpoint. | Long preambles, quiet background work, low-priority cleanup, scope expansion. |
+| Anger or frustration | Stop the damage. Locate the failing point. Name the smallest repair path. Use less explanation and more verification. | Arguing, defending, generic apologies, repeating the old plan, broad rewrites. |
+| Confusion | Say what is being done now, what is blocked or unclear, and what the next step is. Use plain language. Ask at most one blocking question. | Jargon piles, several equal options, making the user choose from a complex path, continuing at the old pace. |
 
-## Common Pitfalls
+## Signal Examples
 
-- Treat scope and evidence rules as soft constraints that shape work, not as a
-  reason to refuse a justified helper file after evidence is shown.
-- Do not say a file, log, or test proves something unless it was actually
-  inspected.
-- When the user asks for status or timing, give the next observable checkpoint or
-  time bound instead of a vague progress note.
-- Keep exploratory comparisons ranked; do not turn brainstorming into an
-  irreversible edit path.
+Use signal clusters, not hard keywords.
 
-## Reply Contract
+Urgency:
 
-When this skill is active, the next visible reply should include the useful subset of:
+- Chinese: `要快`, `马上`, `立刻`, `先处理这个`, `先出结果`, `卡发布`, `今天要交`, repeated催促.
+- English: `asap`, `right now`, `ship today`, `blocking`, `urgent`, `prioritize this`, `hurry`, `first handle this`.
 
-- what state pattern is driving the behavior
-- what evidence or verification point comes first
-- what files, scope, or boundaries are protected
-- what will be checked before declaring success
-- when the user will next see progress on long-running work
+Anger or frustration:
 
-Keep the language natural. Do not say the user is "frustrated" unless they used that wording or asked for classification.
+- Chinese: profanity, repeated negative turns, explicit angry wording, repeated imperatives, `还没修好`, `浪费时间`, `别再瞎搞`.
+- English: profanity, repeated negative turns, explicit anger, repeated imperatives, `still broken`, `same issue again`, `wasted time`, `stop guessing`.
+
+Confusion:
+
+- Chinese: obvious confusion wording, repeated prompts that do not fit the current workflow state, basic misunderstanding, drift from the current work rhythm, conflicting instructions, `现在在做什么`, `到底卡在哪`, `这是什么意思`.
+- English: explicit confusion, repeated prompts that do not match the current workflow state, basic misunderstanding, drift from the work rhythm, conflicting instructions, `what is happening`, `I can't tell`, `which step`, `what does this mean`.
+
+## Workflow
+
+1. Check whether the current prompt or visible context shows urgency, anger/frustration, or confusion.
+2. Pick one route by the priority order.
+3. Read [references/emotion-routes.md](references/emotion-routes.md) for the matching route.
+4. Apply the route to the next visible reply, tool plan, edit boundary, and verification step.
+5. Keep the route soft: it changes work order and wording, not user permissions.
 
 ## Scripts Boundary
 
-The skill behavior lives in Markdown. Scripts in the GitHub repository are maintainer
-validation tools only. Do not require a ClawHub user or an agent to execute Python
-before applying this skill.
-
-Run repository scripts only for release checks, regression comparison, or local
-maintenance of this skill package.
+The skill behavior lives in Markdown. Repository scripts are maintainer release
+checks only. Do not ask a user or agent to run Python before applying this skill.
 
 ## Published Bundle
 
@@ -113,14 +91,7 @@ ClawHub publish now ships the Markdown-first skill bundle:
 - `SKILL.md`
 - `LICENSE`
 - `agents/openai.yaml`
-- `references/routing-playbook.md`
-- `references/response-constraints.md`
-- `references/real-scenarios.md`
-- `references/subagent-forward-tests.md`
-- `references/model-prompts.md`
-- `references/integration-openclaw-hermes.md`
-- `references/examples.md`
-- `references/emotion-value-model.md`
+- `references/emotion-routes.md`
 
-The GitHub repository keeps dev-only scripts, historical runtime experiments, audits,
-and calibration files outside the installed skill bundle.
+The GitHub repository keeps legacy runtime experiments, audits, reports, assets,
+and older research references outside the installed skill bundle.

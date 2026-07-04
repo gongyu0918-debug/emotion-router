@@ -13,13 +13,7 @@ PUBLIC_FILES = {
     "readme_zh": ROOT / "README.zh-CN.md",
     "changelog": ROOT / "CHANGELOG.md",
     "openai_yaml": ROOT / "agents" / "openai.yaml",
-    "routing_playbook": ROOT / "references" / "routing-playbook.md",
-    "response_constraints": ROOT / "references" / "response-constraints.md",
-    "real_scenarios": ROOT / "references" / "real-scenarios.md",
-    "examples": ROOT / "references" / "examples.md",
-    "emotion_value_model": ROOT / "references" / "emotion-value-model.md",
-    "integration_notes": ROOT / "references" / "integration-openclaw-hermes.md",
-    "model_prompts": ROOT / "references" / "model-prompts.md",
+    "emotion_routes": ROOT / "references" / "emotion-routes.md",
 }
 
 
@@ -62,16 +56,17 @@ OLD_LISTING_COPY = {
 }
 
 SCOPE_TERMS = {
-    "coding agent", "coding-agent", "repo debugging", "repo", "routing", "orchestration", "verification depth",
-    "thread priority", "guard behavior", "guard mode", "scope protection", "scope control", "queue priority",
-    "reply style", "post-success", "stabilization", "debugging", "编排", "路由", "验证强度", "线程优先级",
-    "收口策略", "代码工作流", "coding-task", "coding agents", "heartbeat coordination", "thread and heartbeat",
-    "markdown-first", "playbook", "evidence-first", "scope guard", "closeout", "progress visible",
-    "references", "response constraints", "real scenarios",
+    "coding agent", "coding agents", "coding-agent", "markdown-first", "soft router", "soft routing",
+    "prompt pattern", "prompt patterns", "current prompt", "visible context", "current user prompt",
+    "fastest minimal path", "fastest minimal verification", "smallest repair path", "failing point",
+    "next checkpoint", "next step", "work mode", "verification style", "route", "routing",
+    "三路由", "轻量", "轻架构", "情绪路由", "当前 prompt", "当前 context", "最小修复路径",
+    "最快最小路径", "最快最小验证", "当前卡点", "下一步", "路由",
 }
 EMOTION_TERMS = {
-    "emotion", "emotion-aware", "urgency", "frustration", "skepticism", "confusion", "caution", "satisfaction",
-    "情绪", "怀疑", "谨慎", "困惑", "收口", "紧急", "挫败", "review pass", "shadow review",
+    "emotion", "emotion router", "urgency", "urgent", "anger", "frustration", "confusion",
+    "angry", "frustrated", "pressure", "negative user emotion",
+    "情绪", "急迫", "愤怒", "挫败", "困惑", "负面情绪", "压力",
 }
 CATEGORY_A_TERMS = join_many(
     [
@@ -274,7 +269,7 @@ def main() -> int:
     )
     record(
         "skill_frontmatter_runtime_hint",
-        "markdown-first" in description and ("scope" in description or "evidence" in description),
+        "markdown-first" in description and "urgency" in description and "anger/frustration" in description and "confusion" in description,
         {"description": frontmatter.get("description", "")},
         checks,
     )

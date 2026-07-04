@@ -1,61 +1,50 @@
-# Emotion Skill
+# Emotion Router
 
 [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
 
-Markdown-first guidance for coding agents under pressure.
+Markdown-first soft routing for coding agents when the current user prompt or
+visible context shows urgency, anger/frustration, or confusion.
 
-Emotion Skill helps an agent choose better behavior when a coding task becomes
-tense, blocked, ambiguous, or ready to close. The installed skill is an
-agent-readable playbook: `SKILL.md` routes to focused files in `references/`.
-Python scripts in this repository are maintainer validation tools, not the skill's
-runtime control plane.
+This skill does not model agent feelings. It reads user-side pressure signals and
+routes the agent's next reply, work order, and verification style.
 
 ## Why People Install It
 
-Coding agents often fail in the same human moments:
+Negative user emotion and time pressure can push models toward defensive replies,
+over-explaining, guessing, drifting from the task, or expanding scope.
 
-- The user says the same bug still happens, and the agent keeps explaining.
-- The user asks for evidence, and the agent keeps guessing.
-- The user protects scope, and the agent touches nearby files.
-- The user gets no progress signal during a silent tool or queue delay.
-- The user says it works, and the agent starts a new refactor.
+Emotion Router keeps the response stable through three routes:
 
-This skill turns those moments into readable routing and response rules.
+- **Urgency**: fastest minimal path to satisfy the prompt, then fastest minimal verification.
+- **Anger or frustration**: stop the damage, locate the failing point, find the smallest repair path.
+- **Confusion**: say what is being done now, what is blocked, and what happens next in plain language.
 
 ## Structure
 
 Published ClawHub bundle:
 
-- `SKILL.md`: trigger description, workflow, and reference index
-- `agents/openai.yaml`: UI metadata and starter prompt
-- `references/routing-playbook.md`: main state routing and tie breakers
-- `references/response-constraints.md`: evidence, scope, progress, closeout guardrails
-- `references/real-scenarios.md`: real scenario families for regression thinking
-- `references/subagent-forward-tests.md`: agent-in-the-loop forward-test protocol
-- `references/model-prompts.md`: optional compact overlays for host prompts
-- `references/integration-openclaw-hermes.md`: host integration guidance
-- `references/examples.md`: before/after behavior examples
-- `references/emotion-value-model.md`: rationale and measurement ideas
+- `SKILL.md`: trigger boundary, priority, and route selection
+- `agents/openai.yaml`: UI metadata and default invocation prompt
+- `references/emotion-routes.md`: signals, prompt patterns, forbidden behavior, and first-sentence shapes
 
 GitHub-only maintenance files:
 
-- `scripts/`: regression, audit, scenario, and historical runtime validation
-- `assets/`: calibration and long-tail corpus material
-- `demo/`: local examples for legacy runtime checks
-- historical and research references excluded from the installed bundle
+- `scripts/`: release checks, audits, and legacy runtime regression tests
+- `references/`: older design notes and non-published validation references
+- `assets/`, `demo/`, `reports/`: calibration, local examples, and test evidence
 
 ## Use
 
 In a skills-aware agent:
 
 ```text
-Use $emotion-skill when the user asks for evidence, repeats a failed bug,
-protects scope, waits through a delay, is confused by a path, or asks to close
-out after success.
+Use $emotion-skill when the current user prompt or visible context shows urgency,
+anger/frustration, or confusion. Pick one route and apply the matching prompt
+pattern. Do not run a Python classifier.
 ```
 
-The agent should read `SKILL.md`, then load only the matching reference. It should
-not run a Python classifier before applying the playbook.
+The agent should read `SKILL.md`, then load `references/emotion-routes.md` for the
+selected route. Signal examples are not hard keyword triggers.
 
 ## Validation
 
@@ -63,32 +52,20 @@ Repository validation:
 
 ```bash
 python scripts/markdown_skill_audit.py
-python scripts/real_scenario_replay.py
 python scripts/bundle_manifest_check.py
 python scripts/marketplace_tag_audit.py
-python scripts/alignment_test.py
-python scripts/ablation_test.py
-python scripts/smoke_test.py --seed 20260424 --strict
-python -m compileall -q scripts
+python scripts/smoke_test.py --strict
 git diff --check
 ```
 
-Validation intent:
+Subagent forward tests are the real behavior check for the three routes: urgency,
+anger/frustration, confusion, plus the urgency+anger conflict case.
 
-- Markdown audit checks that routing, disclosure, and publish boundaries are
-  Markdown-first.
-- Real scenario replay is a structural smoke test for scenario-family coverage.
-- Subagent forward tests are the real behavior check for routing accuracy and
-  soft constraints versus hard guardrails; reports live under `reports/`.
-- Bundle manifest check confirms ClawHub publishes the lean Markdown bundle.
-- Legacy runtime tests remain as regression evidence that the old Python tooling
-  was not accidentally broken while being moved out of the installed skill path.
+## Boundary
 
-## Design Boundary
-
-This is a skill, not a plugin. A plugin or host may implement automation around
-the guidance, but the installed skill itself should remain useful as Markdown
-that a person or agent can read directly.
+This is a skill, not a plugin or runtime classifier. It does not inspect
+AGENTS.md, durable memory, user profiles, hidden history, or old calibration
+state. It only uses the current prompt and visible context window.
 
 ## License
 
