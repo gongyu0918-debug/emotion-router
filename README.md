@@ -2,8 +2,9 @@
 
 [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
 
-Markdown-first soft routing for coding agents when the current user prompt or
-visible context shows urgency, anger/frustration, or confusion.
+Markdown-first soft routing for coding agents when the current prompt shows
+clear urgency wording, strong anger/frustration signals, or workflow confusion
+about the current step, conflict, or mismatch.
 
 This skill does not model agent feelings. It reads user-side pressure signals and
 routes the agent's next reply, work order, and verification style.
@@ -25,7 +26,9 @@ Published ClawHub bundle:
 
 - `SKILL.md`: trigger boundary, priority, and route selection
 - `agents/openai.yaml`: UI metadata and default invocation prompt
-- `references/emotion-routes.md`: signals, prompt patterns, forbidden behavior, and first-sentence shapes
+- `references/urgency-route.md`: urgency signals, non-triggers, response pattern, overlap rules, and examples
+- `references/anger-frustration-route.md`: anger/frustration signals, non-triggers, response pattern, overlap rules, and examples
+- `references/confusion-route.md`: confusion signals, non-triggers, response pattern, overlap rules, and examples
 
 GitHub-only maintenance files:
 
@@ -38,13 +41,16 @@ GitHub-only maintenance files:
 In a skills-aware agent:
 
 ```text
-Use $emotion-skill when the current user prompt or visible context shows urgency,
-anger/frustration, or confusion. Pick one route and apply the matching prompt
-pattern. Do not run a Python classifier.
+Use $emotion-skill when the current prompt shows clear urgency wording, strong
+anger/frustration signals such as profanity or repeated failure/blame, or
+workflow confusion about the current step, conflict, or mismatch. Do not use it
+for ordinary tasks, neutral commands, ordinary technical explanations, or
+content-only emotion mentions.
 ```
 
-The agent should read `SKILL.md`, then load `references/emotion-routes.md` for the
-selected route. Signal examples are not hard keyword triggers.
+The agent should read `SKILL.md`, choose one route by priority, then load only
+the matching route reference. Trigger cues are explicit enough to avoid broad
+over-routing, but they are not complete keyword or profanity wordlists.
 
 ## Validation
 

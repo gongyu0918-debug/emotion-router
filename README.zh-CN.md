@@ -2,7 +2,7 @@
 
 [English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
 
-面向 Coding Agent 的 Markdown-first 轻量情绪路由 skill。触发边界只看当前用户 prompt 和当前 context window：急迫、愤怒/挫败、困惑。
+面向 Coding Agent 的 Markdown-first 轻量情绪路由 skill。触发边界只看当前 prompt：明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑。
 
 Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把它转成 agent 下一步回复、工作顺序和验证方式。
 
@@ -22,7 +22,9 @@ ClawHub 发布包：
 
 - `SKILL.md`：触发边界、优先级和路由选择
 - `agents/openai.yaml`：界面元数据和默认调用提示
-- `references/emotion-routes.md`：三路由的信号、prompt 引导、禁止行为和示例开句
+- `references/urgency-route.md`：急迫 route 的信号、非触发边界、响应策略、冲突规则和示例
+- `references/anger-frustration-route.md`：愤怒/挫败 route 的信号、非触发边界、响应策略、冲突规则和示例
+- `references/confusion-route.md`：困惑 route 的信号、非触发边界、响应策略、冲突规则和示例
 
 GitHub 仓库额外保留：
 
@@ -35,12 +37,14 @@ GitHub 仓库额外保留：
 在支持 skills 的 agent 中：
 
 ```text
-Use $emotion-skill when the current user prompt or visible context shows urgency,
-anger/frustration, or confusion. Pick one route and apply the matching prompt
-pattern. Do not run a Python classifier.
+Use $emotion-skill when the current prompt shows clear urgency wording, strong
+anger/frustration signals such as profanity or repeated failure/blame, or
+workflow confusion about the current step, conflict, or mismatch. Do not use it
+for ordinary tasks, neutral commands, ordinary technical explanations, or
+content-only emotion mentions.
 ```
 
-Agent 应先读 `SKILL.md`，再加载 `references/emotion-routes.md` 中匹配的 route。信号词只是例子，不是硬关键词触发。
+Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹配的 route reference。触发线索足够明确，用于降低误触发；但它不是完整关键词表，也不是脏话词库。
 
 ## 验证
 

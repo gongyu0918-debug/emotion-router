@@ -13,7 +13,9 @@ PUBLIC_FILES = {
     "readme_zh": ROOT / "README.zh-CN.md",
     "changelog": ROOT / "CHANGELOG.md",
     "openai_yaml": ROOT / "agents" / "openai.yaml",
-    "emotion_routes": ROOT / "references" / "emotion-routes.md",
+    "urgency_route": ROOT / "references" / "urgency-route.md",
+    "anger_frustration_route": ROOT / "references" / "anger-frustration-route.md",
+    "confusion_route": ROOT / "references" / "confusion-route.md",
 }
 
 

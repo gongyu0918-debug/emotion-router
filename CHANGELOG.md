@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1 - 2026-07-05
+
+- split the single route reference into one Markdown file per route: urgency, anger/frustration, and confusion
+- reduced `SKILL.md` to the progressive-disclosure entrypoint: trigger boundary, priority, and route reference selection
+- tightened trigger gates: urgency requires clear speed/priority wording, anger/frustration requires strong active signals such as profanity or repeated failure/blame, and confusion is limited to workflow-state uncertainty, instruction conflict, or context mismatch
+- added community-check, ablation, and subagent forward-test evidence for trigger boundaries, false-positive prevention, and route behavior before publication
+
 ## 2.0.0 - 2026-07-05
 
 - rebuilt the skill as a lightweight three-route Markdown router for current-turn urgency, anger/frustration, and confusion
