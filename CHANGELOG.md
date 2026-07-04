@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.3 - 2026-07-04
+
+- updated the SkillHub-facing display name to `情绪路由`
+- localized the SkillHub summary surface through the `SKILL.md` frontmatter description, which is the field used by the live skill API and page metadata
+- added generated Q-style avatar assets under `assets/` for the SkillHub skill profile artwork
+
 ## 1.4.2 - 2026-07-04
 
 - tightened the Markdown-first published layer by adding entrypoint metadata, use boundaries, common pitfalls, urgent routing, exploratory map coverage, and missing examples
