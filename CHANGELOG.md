@@ -4,6 +4,7 @@
 
 - restored the ClawHub-facing display name and summary to the English `Emotion Router` release surface after the SkillHub/ClawHub platform mix-up
 - bumped release metadata to `1.4.4` so GitHub and ClawHub latest do not point at the mistaken Chinese ClawHub metadata release
+- added the SkillHub CLI/API fields `slug`, `displayName`, `summary`, and `summaryZh` so SkillHub can be upgraded from `1.4.1` to the same `1.4.4` release line while keeping ClawHub's visible English display metadata unchanged
 
 ## 1.4.3 - 2026-07-04
 
