@@ -30,7 +30,16 @@ user explicitly asks for classification. The user should see better work, not a
 diagnosis.
 
 This is a soft router, not a classifier. Signal examples help recognition, but
-no single keyword is a hard trigger.
+no single keyword is a hard trigger and no route requires a complete keyword or
+profanity wordlist. Use semantic judgment from the current prompt and visible
+context.
+
+Do not route solely because emotion or pressure words appear as subject matter,
+field names, examples, research topics, or documentation content. Treat a
+request about a confusion report, profanity research, an `urgentFlag` variable,
+or a quoted angry sentence as ordinary work by default. If the same current
+prompt or visible context also shows active urgency, anger/frustration, or
+confusion, use judgment and route by that active work-state signal.
 
 ## Route Priority
 

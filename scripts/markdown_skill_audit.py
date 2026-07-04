@@ -102,6 +102,18 @@ def main() -> int:
         {},
     )
     record(checks, "signals_are_not_hard_keywords", "no single keyword is a hard trigger" in skill_text and "not hard keyword" in routes_text.lower(), {})
+    record(
+        checks,
+        "no_complete_keyword_or_profanity_wordlist",
+        contains_all(skill_text + "\n" + routes_text, ["no route requires a complete keyword", "not a wordlist to complete", "do not build or require a profanity wordlist", "semantic judgment"]),
+        {},
+    )
+    record(
+        checks,
+        "content_mentions_do_not_trigger",
+        contains_all(skill_text + "\n" + routes_text, ["content mentions alone", "field names", "research topics", "urgentflag", "profanity research", "ordinary work by default", "use judgment"]),
+        {},
+    )
     record(checks, "agent_has_no_real_emotions", "agent does not have real emotions" in skill_text.lower(), {})
     record(checks, "negative_pressure_risk_stated", contains_all(skill_text, ["defensive replies", "over-explaining", "guessing", "drifting", "expanding scope"]), {})
 

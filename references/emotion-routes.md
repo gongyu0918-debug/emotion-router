@@ -4,7 +4,16 @@ Use this file after `SKILL.md` selects one route. The routes are prompt patterns
 not emotion diagnoses. Do not tell the user which label was chosen unless they
 asked for classification.
 
-The signal examples below are examples only, not hard keyword triggers.
+The signal examples below are weak examples only, not hard keyword triggers and
+not a wordlist to complete. Use semantic judgment from the current prompt and
+visible context.
+
+Content mentions alone are not route evidence. If the user asks for a report
+about confusion, research on profanity, examples of anger, a field named
+`urgentFlag`, or documentation that quotes emotional text, treat it as ordinary
+work by default. If the same current prompt or visible context also shows active
+urgency, anger/frustration, or confusion, use judgment and route by that active
+work-state signal.
 
 ## Urgency
 
@@ -38,10 +47,12 @@ First sentence shapes:
 
 Signals:
 
-- Profanity, explicit anger, repeated negative turns, or repeated imperatives.
+- Profanity or hostile wording, explicit anger, repeated negative turns, or repeated imperatives.
 - The user says the same issue is still broken or time has been wasted.
 - English examples: `still broken`, `same issue again`, `wasted time`, `stop guessing`.
 - Chinese examples: `还没修好`, `又坏了`, `浪费时间`, `别再瞎搞`, `受不了`.
+- Do not build or require a profanity wordlist. Recognize the work-state signal
+  from wording, repetition, imperative pressure, and task context.
 
 Prompt pattern:
 
