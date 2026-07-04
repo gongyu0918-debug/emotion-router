@@ -1,7 +1,7 @@
 ---
 name: emotion-skill
-description: 情绪路由：面向 coding agents 的中文友好 Markdown-first 工作状态路由。用于仓库调试、反复失败、evidence-first review、scope 收敛、静默等待、困惑澄清、紧急处理和完成后收口；把用户状态转成证据、进度、验证和回复深度。
-version: 1.4.3
+description: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
+version: 1.4.4
 author: gongyu0918-debug
 license: MIT
 metadata:

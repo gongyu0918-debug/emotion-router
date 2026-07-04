@@ -1,8 +1,8 @@
 interface:
-  display_name: "情绪路由"
-  short_description: "面向 coding agents 的中文友好状态路由：证据优先、范围收紧、紧急时先行动、等待时给进度、完成后守住收口。"
+  display_name: "Emotion Router"
+  short_description: "Markdown-first playbook for coding agents under pressure: evidence first, scope tight, urgent action brief, progress visible, closeout guarded."
   default_prompt: "Use $emotion-skill when a coding-agent task involves repeated failure, evidence requests, scoped edits, urgent pressure, silent delay, confusion, option comparison, or post-success closeout. Read SKILL.md first, then load only the matching reference: routing-playbook, response-constraints, real-scenarios, subagent-forward-tests, model-prompts, integration notes, examples, or value model. Apply the behavior directly; do not require a Python classifier."
-  version: "1.4.3"
+  version: "1.4.4"
   author: "gongyu0918-debug"
   license: "MIT"
 
