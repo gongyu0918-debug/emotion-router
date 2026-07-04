@@ -1,9 +1,5 @@
 ---
 name: emotion-skill
-slug: emotion-skill
-displayName: 情绪路由
-summary: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
-summaryZh: 面向承压代码代理的 Markdown 优先行为指南。适用于仓库调试、反复失败恢复、证据优先审查、限定范围修改、工具或队列静默延迟、用户困惑、成功后收尾等需要改进代理行为的场景。按用户状态模式路由，只加载相关参考，明确范围，在高风险修改前先给证据，保持进度可见，并用回归检查收尾，避免扩展工作。
 description: Markdown-first guidance for coding agents under pressure. Use when repo debugging, repeated failure recovery, evidence-first review, scoped edits, silent tool or queue delays, user confusion, or post-success closeout need better agent behavior. Route by user-state patterns, load only the relevant references, keep scope explicit, show evidence before risky edits, keep progress visible, and close with regression checks instead of expanding work.
 version: 1.4.4
 author: gongyu0918-debug
