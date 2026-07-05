@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2 - 2026-07-05
+
+- tightened the confusion versus anger/frustration boundary with concrete priority signals for profanity, hostile wording, direct blame, repeated failure, and loss of trust
+- clarified that urgency overlap rules are self-contained and do not require loading the lower-priority anger/frustration route file
+- narrowed `wasted time` / `浪费时间` as an anger/frustration cue to repeated-failure, blame, or loss-of-trust context
+- added the route ablation check to README validation and covered the wasted-time non-trigger regression case
+
 ## 2.0.1 - 2026-07-05
 
 - split the single route reference into one Markdown file per route: urgency, anger/frustration, and confusion

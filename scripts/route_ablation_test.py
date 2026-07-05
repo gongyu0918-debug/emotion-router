@@ -64,11 +64,12 @@ ACTIVE_URGENCY_OVERRIDE_RE = re.compile(
     re.IGNORECASE,
 )
 ANGER_RE = re.compile(
-    r"(tm|tmd|wtf|fuck|shit|damn|别再瞎搞|瞎搞|浪费时间|还没修好|又坏了|一直没修好|"
-    r"still broken|same issue again|wasted time|stop guessing|你改了我什么|给你权利|"
+    r"(tm|tmd|wtf|fuck|shit|damn|别再瞎搞|瞎搞|还没修好|又坏了|一直没修好|"
+    r"still broken|same issue again|stop guessing|你改了我什么|给你权利|"
     r"loss of trust|broken again)",
     re.IGNORECASE,
 )
+WASTED_TIME_RE = re.compile(r"(浪费时间|wasted time)", re.IGNORECASE)
 CONFUSION_RE = re.compile(
     r"(现在在做什么|到底卡在哪|下一步是什么|哪一步|当前步骤|这一步是什么意思|"
     r"what is happening|which step|current step|can't tell|cannot tell|what are you doing|"
@@ -187,6 +188,12 @@ ROUTE_CASES = [
         "imperatives alone are not anger/frustration",
     ),
     RouteCase(
+        "negative_wasted_time_preference_cn",
+        "这个方案太浪费时间了，换个思路。",
+        ORDINARY,
+        "wasted-time preference without repeated failure or blame",
+    ),
+    RouteCase(
         "mixed_urgent_field_with_blocker_en",
         "Rename urgentFlag to priorityFlag; this is blocking release, please handle it ASAP.",
         URGENCY,
@@ -298,15 +305,29 @@ def has_active_urgency(prompt: str) -> bool:
     return True
 
 
+def has_active_anger(prompt: str) -> bool:
+    if ANGER_RE.search(prompt):
+        return True
+    if WASTED_TIME_RE.search(prompt):
+        return bool(
+            re.search(
+                r"(同一个问题|一直|又|还没|same issue|still broken|broken again|stop guessing|trust|瞎搞|责备|blame)",
+                prompt,
+                re.IGNORECASE,
+            )
+        )
+    return False
+
+
 def is_content_or_field_only(prompt: str) -> bool:
-    has_active_signal = has_active_urgency(prompt) or ANGER_RE.search(prompt) or CONFUSION_RE.search(prompt)
+    has_active_signal = has_active_urgency(prompt) or has_active_anger(prompt) or CONFUSION_RE.search(prompt)
     if has_active_signal:
         return False
     return bool(CONTENT_ONLY_RE.search(prompt) or FIELD_ONLY_RE.search(prompt))
 
 
 def is_ordinary_command_or_explanation(prompt: str) -> bool:
-    has_active_signal = has_active_urgency(prompt) or ANGER_RE.search(prompt) or CONFUSION_RE.search(prompt)
+    has_active_signal = has_active_urgency(prompt) or has_active_anger(prompt) or CONFUSION_RE.search(prompt)
     if has_active_signal:
         return False
     return bool(ORDINARY_EXPLANATION_RE.search(prompt) or NEUTRAL_COMMAND_RE.search(prompt))
@@ -319,7 +340,7 @@ def predict_route(prompt: str) -> str:
         return ORDINARY
     if has_active_urgency(prompt):
         return URGENCY
-    if ANGER_RE.search(prompt):
+    if has_active_anger(prompt):
         return ANGER
     if CONFUSION_RE.search(prompt):
         return CONFUSION

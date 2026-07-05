@@ -13,8 +13,10 @@ action. Use soft cues and context; do not route ordinary explanation requests.
 - Chinese examples: `现在在做什么`, `到底卡在哪`, `哪一步`, `当前步骤是什么意思`, `这一步是什么意思`.
 
 Route to confusion only when the user is seeking orientation. If the same prompt
-primarily expresses blame, repeated failure pressure, or loss of trust in the
-agent's current path, use anger/frustration instead.
+contains profanity, hostile wording, direct blame, explicit repeated failure
+wording, or loss of trust in the agent's current path, use anger/frustration
+instead. If those stronger signals are absent and the user asks what step,
+state, blocker, conflict, or mismatch is active, use confusion.
 
 ## Non-Triggers
 

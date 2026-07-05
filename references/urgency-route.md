@@ -28,7 +28,8 @@ complete keyword list.
 ## Overlap Rules
 
 - If anger/frustration is also present, keep moving fast but do not argue, defend,
-  or repeat the failed path.
+  or repeat the failed path. These inline constraints are sufficient; do not
+  load the anger/frustration route file just to complete this overlap.
 - If confusion is also present, give one fastest default path, then add one short
   sentence about current state.
 

@@ -25,6 +25,7 @@ Emotion Router keeps the response stable through three routes:
 Published ClawHub bundle:
 
 - `SKILL.md`: trigger boundary, priority, and route selection
+- `LICENSE`: package license
 - `agents/openai.yaml`: UI metadata and default invocation prompt
 - `references/urgency-route.md`: urgency signals, non-triggers, response pattern, overlap rules, and examples
 - `references/anger-frustration-route.md`: anger/frustration signals, non-triggers, response pattern, overlap rules, and examples
@@ -57,6 +58,7 @@ over-routing, but they are not complete keyword or profanity wordlists.
 Repository validation:
 
 ```bash
+python -B scripts/route_ablation_test.py
 python scripts/markdown_skill_audit.py
 python scripts/bundle_manifest_check.py
 python scripts/marketplace_tag_audit.py

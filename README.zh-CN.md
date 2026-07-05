@@ -21,6 +21,7 @@ Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把�
 ClawHub 发布包：
 
 - `SKILL.md`：触发边界、优先级和路由选择
+- `LICENSE`：包许可
 - `agents/openai.yaml`：界面元数据和默认调用提示
 - `references/urgency-route.md`：急迫 route 的信号、非触发边界、响应策略、冲突规则和示例
 - `references/anger-frustration-route.md`：愤怒/挫败 route 的信号、非触发边界、响应策略、冲突规则和示例
@@ -51,6 +52,7 @@ Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹
 仓库验证：
 
 ```bash
+python -B scripts/route_ablation_test.py
 python scripts/markdown_skill_audit.py
 python scripts/bundle_manifest_check.py
 python scripts/marketplace_tag_audit.py

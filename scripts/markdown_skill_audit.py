@@ -93,7 +93,7 @@ def main() -> int:
     keys = frontmatter_keys(skill_text)
     required_frontmatter = ["name", "description", "version", "author", "license", "metadata"]
     record(checks, "frontmatter_metadata", all(key in keys for key in required_frontmatter), {"keys": keys})
-    record(checks, "version_2_0_1", frontmatter_value(skill_text, "version") == "2.0.1", {"version": frontmatter_value(skill_text, "version")})
+    record(checks, "version_2_0_2", frontmatter_value(skill_text, "version") == "2.0.2", {"version": frontmatter_value(skill_text, "version")})
     record(checks, "skill_entrypoint_is_lean", len(skill_text.splitlines()) <= 80, {"lines": len(skill_text.splitlines())})
 
     description = frontmatter_value(skill_text, "description").lower()
@@ -169,7 +169,7 @@ def main() -> int:
     record(
         checks,
         "confusion_boundary_yields_to_frustration",
-        contains_all(route_texts["confusion"], ["seeking orientation", "blame", "repeated failure pressure", "loss of trust", "use anger/frustration instead"]),
+        contains_all(route_texts["confusion"], ["seeking orientation", "direct blame", "explicit repeated failure", "loss of trust", "use anger/frustration instead"]),
         {},
     )
     record(

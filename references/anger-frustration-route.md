@@ -11,9 +11,10 @@ is not enough.
 
 - Profanity, repeated profanity, or hostile wording in the current work request.
 - Repeated strong negative emotion words or explicit anger/frustration.
-- The user says the same issue is still broken or time has been wasted.
-- English examples: `still broken`, `same issue again`, `wasted time`, `stop guessing`.
-- Chinese examples: `还没修好`, `又坏了`, `浪费时间`, `别再瞎搞`, `受不了`.
+- The user says the same issue is still broken, or says time has been wasted in
+  the context of repeated failure, blame, or loss of trust.
+- English examples: `still broken`, `same issue again`, `wasted time on the same issue`, `stop guessing`.
+- Chinese examples: `还没修好`, `又坏了`, `一直没修好，浪费时间`, `别再瞎搞`, `受不了`.
 
 Do not build or require a profanity wordlist. Recognize the work-state signal
 from strong wording, repetition, blame, failure pressure, and task context.
