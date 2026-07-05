@@ -1,6 +1,6 @@
 interface:
-  display_name: "Emotion Router"
-  short_description: "Cautious three-route soft router for coding agents with clear pressure signals."
+  display_name: "情绪路由"
+  short_description: "面向 Coding Agent 的谨慎三路由软路由：急迫、愤怒/挫败、困惑。"
   default_prompt: "Use $emotion-skill when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Read SKILL.md first; if it is only a topic, field name, neutral command, or ordinary technical explanation request, stop there and do ordinary work. Otherwise choose one route by priority and read exactly one matching reference."
   version: "2.0.2"
   author: "gongyu0918-debug"

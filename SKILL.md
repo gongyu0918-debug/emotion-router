@@ -1,5 +1,8 @@
 ---
 name: emotion-skill
+slug: emotion-skill
+displayName: 情绪路由
+summary: 面向 Coding Agent 的谨慎三路由情绪路由。仅在当前 prompt 出现明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑时，按优先级加载急迫、愤怒/挫败、困惑之一的 route reference。2.0.2 收紧困惑与愤怒边界、急迫冲突处理和“浪费时间”误触发。普通任务、中性命令、普通技术解释、内容提及默认不触发。
 description: Markdown-first soft router for coding agents when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Do not use for ordinary tasks, neutral commands, ordinary technical explanations, or content-only mentions of emotion words.
 version: 2.0.2
 author: gongyu0918-debug
@@ -74,5 +77,4 @@ ClawHub publish now ships the Markdown-first skill bundle:
 - `references/confusion-route.md`
 - `references/urgency-route.md`
 
-The GitHub repository keeps legacy runtime experiments, audits, reports, assets,
-and older research references outside the installed skill bundle.
+The GitHub repository keeps legacy runtime experiments, audits, reports, assets, and older research references outside the installed skill bundle.
