@@ -1,6 +1,6 @@
 # 情绪路由 / Emotion Router
 
-[English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
+[English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill`
 
 面向 Coding Agent 的 Markdown-first 轻量情绪路由 skill。触发边界只看当前 prompt：明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑。
 
@@ -68,4 +68,4 @@ Subagent forward test 是真实行为检查，覆盖急迫、愤怒/挫败、困
 
 ## License
 
-MIT. See the [GitHub repository license](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill/blob/main/LICENSE).
+MIT. See the [GitHub repository license](https://github.com/gongyu0918-debug/emotion-router/blob/main/LICENSE).

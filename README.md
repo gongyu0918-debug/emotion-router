@@ -1,6 +1,6 @@
 # Emotion Router
 
-[简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill) · `clawhub install emotion-skill`
+[简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill`
 
 Markdown-first soft routing for coding agents when the current prompt shows
 clear urgency wording, strong anger/frustration signals, or workflow confusion
@@ -77,4 +77,4 @@ state. It only uses the current prompt and visible context window.
 
 ## License
 
-MIT. See the [GitHub repository license](https://github.com/gongyu0918-debug/emotion-skill-qingxu-skill/blob/main/LICENSE).
+MIT. See the [GitHub repository license](https://github.com/gongyu0918-debug/emotion-router/blob/main/LICENSE).
