@@ -1,10 +1,10 @@
 ---
 name: emotion-skill
 description: Markdown-first soft router for coding agents when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Do not use for ordinary tasks, neutral commands, ordinary technical explanations, or content-only mentions of emotion words.
-version: 2.0.2
-author: gongyu0918-debug
 license: MIT
 metadata:
+  version: "2.0.3"
+  author: gongyu0918-debug
   hermes:
     tags: [emotion-routing, coding-agent, markdown-first]
 ---

@@ -1,0 +1,27 @@
+name: Skill v2 gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Route contract and frozen fixture
+        run: python -B scripts/route_ablation_test.py
+      - name: Markdown skill audit
+        run: python -B scripts/markdown_skill_audit.py
+      - name: Published bundle allowlist
+        run: python -B scripts/bundle_manifest_check.py
+      - name: Marketplace metadata audit
+        run: python -B scripts/marketplace_tag_audit.py

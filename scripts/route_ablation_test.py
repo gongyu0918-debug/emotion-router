@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -441,9 +442,28 @@ def score_ablation() -> dict[str, Any]:
         )
     baseline_rate = baseline_passed / baseline_total if baseline_total else 1.0
     skill_rate = skill_passed / skill_total if skill_total else 1.0
+    fixture_payload = [
+        {
+            "id": case.id,
+            "prompt": case.prompt,
+            "expected_route": case.expected_route,
+            "baseline": case.baseline,
+            "skill": case.skill,
+        }
+        for case in RESPONSE_CASES
+    ]
+    fixture_hash = hashlib.sha256(
+        json.dumps(fixture_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
     return {
         "ok": skill_rate > baseline_rate and not skill_regressions,
-        "fixture_source": "fresh subagents on 2026-07-05; baseline agent did not read skill files; skill agent read SKILL.md and active route references only",
+        "evidence_kind": "frozen_fixture_regression_not_live_agent",
+        "fixture_provenance": {
+            "captured_on": "2026-07-05",
+            "source_report": "reports/route-ablation-test-2026-07-05-v2.0.1.md",
+            "method": "baseline agent did not read skill files; skill agent read SKILL.md and active route references only",
+            "sha256": fixture_hash,
+        },
         "baseline_passed": baseline_passed,
         "baseline_total": baseline_total,
         "baseline_rate": round(baseline_rate, 4),

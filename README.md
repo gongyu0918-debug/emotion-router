@@ -37,6 +37,10 @@ GitHub-only maintenance files:
 - `references/`: older design notes and non-published validation references
 - `assets/`, `demo/`, `reports/`: calibration, local examples, and test evidence
 
+The canonical marketplace release path stages this explicit allowlist before
+publishing. `.clawhubignore` remains defense in depth for accidental root-folder
+publishes; it is not the release source of truth.
+
 ## Use
 
 In a skills-aware agent:
@@ -55,19 +59,33 @@ over-routing, but they are not complete keyword or profanity wordlists.
 
 ## Validation
 
-Repository validation:
+2.0.x Markdown skill release gates:
 
 ```bash
 python -B scripts/route_ablation_test.py
-python scripts/markdown_skill_audit.py
-python scripts/bundle_manifest_check.py
-python scripts/marketplace_tag_audit.py
-python scripts/smoke_test.py --strict
+python -B scripts/markdown_skill_audit.py
+python -B scripts/bundle_manifest_check.py
+python -B scripts/marketplace_tag_audit.py
 git diff --check
 ```
 
-Subagent forward tests are the real behavior check for the three routes: urgency,
-anger/frustration, confusion, plus the urgency+anger conflict case.
+`route_ablation_test.py` is a deterministic contract and frozen-fixture replay,
+not a live model benchmark. Fresh subagent forward tests are the behavior check
+for urgency, anger/frustration, confusion, urgency+anger overlap, and non-trigger
+cases.
+
+Stage the exact marketplace package before a dry run or live publish:
+
+```bash
+python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
+python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
+```
+
+Legacy v1 runtime regression, optional and not evidence for 2.0.x skill behavior:
+
+```bash
+python -B scripts/smoke_test.py --strict
+```
 
 ## Boundary
 

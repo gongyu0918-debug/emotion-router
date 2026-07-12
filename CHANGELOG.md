@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.3 - 2026-07-12
+
+- separated v2 Markdown skill release gates from legacy runtime regression checks so green legacy smoke output is not presented as live skill behavior evidence
+- changed the canonical marketplace release path to stage an explicit six-file ClawHub allowlist or five-file SkillHub allowlist before publishing
+- labeled the deterministic route ablation as a frozen fixture replay and added source provenance plus a stable fixture hash
+- replaced the hard-coded version audit with cross-file release version alignment and added a focused v2 CI gate
+- moved version and author into standard frontmatter metadata so the published skill passes the current Agent Skills schema validator
+
 ## 2.0.2 - 2026-07-05
 
 - tightened the confusion versus anger/frustration boundary with concrete priority signals for profanity, hostile wording, direct blame, repeated failure, and loss of trust

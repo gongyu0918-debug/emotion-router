@@ -33,6 +33,9 @@ GitHub 仓库额外保留：
 - `references/`：旧设计说明和不进入安装包的验证参考
 - `assets/`、`demo/`、`reports/`：校准材料、本地样例和测试证据
 
+市场发布时先按显式 allowlist 生成 staging 目录，再从 staging 目录发布。
+`.clawhubignore` 只作为误从仓库根目录发布时的第二层保护，不是发布清单的唯一真相来源。
+
 ## 使用方式
 
 在支持 skills 的 agent 中：
@@ -49,18 +52,31 @@ Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹
 
 ## 验证
 
-仓库验证：
+2.0.x Markdown skill 发布门禁：
 
 ```bash
 python -B scripts/route_ablation_test.py
-python scripts/markdown_skill_audit.py
-python scripts/bundle_manifest_check.py
-python scripts/marketplace_tag_audit.py
-python scripts/smoke_test.py --strict
+python -B scripts/markdown_skill_audit.py
+python -B scripts/bundle_manifest_check.py
+python -B scripts/marketplace_tag_audit.py
 git diff --check
 ```
 
-Subagent forward test 是真实行为检查，覆盖急迫、愤怒/挫败、困惑，以及急迫+愤怒冲突。
+`route_ablation_test.py` 是确定性的契约与冻结 fixture 回放，不是 live 模型测试。
+Fresh subagent forward test 才是行为检查，覆盖急迫、愤怒/挫败、困惑、急迫+愤怒冲突和非触发场景。
+
+dry-run 或正式发布前生成精确市场包：
+
+```bash
+python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
+python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
+```
+
+Legacy v1 runtime 回归可选运行，但其结果不能作为 2.0.x skill 行为证据：
+
+```bash
+python -B scripts/smoke_test.py --strict
+```
 
 ## 边界
 

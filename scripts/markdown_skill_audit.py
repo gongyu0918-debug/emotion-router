@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,8 @@ from bundle_manifest_check import check_manifest
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "SKILL.md"
 IGNORE = ROOT / ".clawhubignore"
+AGENT_METADATA = ROOT / "agents" / "openai.yaml"
+CHANGELOG = ROOT / "CHANGELOG.md"
 
 ROUTE_FILES = {
     "urgency": ROOT / "references" / "urgency-route.md",
@@ -70,6 +73,23 @@ def frontmatter_value(text: str, key: str) -> str:
     return ""
 
 
+def metadata_value(text: str, key: str) -> str:
+    if not text.startswith("---\n"):
+        return ""
+    _, frontmatter, _ = text.split("---", 2)
+    inside_metadata = False
+    prefix = f"  {key}:"
+    for line in frontmatter.splitlines():
+        if line == "metadata:":
+            inside_metadata = True
+            continue
+        if inside_metadata and line and not line.startswith(" "):
+            break
+        if inside_metadata and line.startswith(prefix):
+            return line.split(":", 1)[1].strip().strip('"')
+    return ""
+
+
 def record(checks: list[dict[str, Any]], name: str, ok: bool, detail: Any) -> None:
     checks.append({"name": name, "ok": ok, "detail": detail})
 
@@ -81,6 +101,8 @@ def contains_all(text: str, terms: list[str]) -> bool:
 
 def main() -> int:
     skill_text = read(SKILL)
+    agent_metadata = read(AGENT_METADATA)
+    changelog = read(CHANGELOG)
     route_texts = {name: read(path) for name, path in ROUTE_FILES.items()}
     all_routes_text = "\n".join(route_texts.values())
     ignore_text = read(IGNORE)
@@ -91,9 +113,24 @@ def main() -> int:
     checks: list[dict[str, Any]] = []
 
     keys = frontmatter_keys(skill_text)
-    required_frontmatter = ["name", "description", "version", "author", "license", "metadata"]
+    required_frontmatter = ["name", "description", "license", "metadata"]
     record(checks, "frontmatter_metadata", all(key in keys for key in required_frontmatter), {"keys": keys})
-    record(checks, "version_2_0_2", frontmatter_value(skill_text, "version") == "2.0.2", {"version": frontmatter_value(skill_text, "version")})
+    skill_version = metadata_value(skill_text, "version")
+    skill_author = metadata_value(skill_text, "author")
+    record(checks, "skill_metadata_identity", bool(skill_author), {"author": skill_author})
+    agent_version_match = re.search(r'^\s+version:\s+"([0-9]+\.[0-9]+\.[0-9]+)"\s*$', agent_metadata, re.MULTILINE)
+    changelog_version_match = re.search(r"^##\s+([0-9]+\.[0-9]+\.[0-9]+)\s+-", changelog, re.MULTILINE)
+    versions = {
+        "skill": skill_version,
+        "agent_metadata": agent_version_match.group(1) if agent_version_match else "",
+        "changelog": changelog_version_match.group(1) if changelog_version_match else "",
+    }
+    record(
+        checks,
+        "release_version_alignment",
+        bool(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", skill_version)) and len(set(versions.values())) == 1,
+        versions,
+    )
     record(checks, "skill_entrypoint_is_lean", len(skill_text.splitlines()) <= 80, {"lines": len(skill_text.splitlines())})
 
     description = frontmatter_value(skill_text, "description").lower()
