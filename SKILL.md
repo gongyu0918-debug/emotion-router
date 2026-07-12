@@ -1,5 +1,8 @@
 ---
 name: emotion-skill
+slug: emotion-skill
+displayName: 情绪路由
+summary: 面向 Coding Agent 的 Markdown-first 三路由软路由。仅当当前 prompt 或可见上下文出现明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、指令冲突、上下文错位的工作流困惑时，按急迫、愤怒/挫败、困惑的优先级选择一个 route reference；普通任务、中性命令、普通技术解释及仅作为内容提及的情绪词默认不触发。
 description: Markdown-first soft router for coding agents when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Do not use for ordinary tasks, neutral commands, ordinary technical explanations, or content-only mentions of emotion words.
 license: MIT
 metadata:
@@ -8,7 +11,6 @@ metadata:
   hermes:
     tags: [emotion-routing, coding-agent, markdown-first]
 ---
-
 # Emotion Router
 
 Use this skill to route the agent's next work mode from the user's current prompt and visible context. The agent does not have real emotions. This skill reads
