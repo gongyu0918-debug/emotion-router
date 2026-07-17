@@ -1,8 +1,8 @@
 # 情绪路由 / Emotion Router
 
-[English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill`
+[English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill` · `skillhub install emotion-skill`
 
-面向 Coding Agent 的 Markdown-first 轻量情绪路由 skill。触发边界只看当前 prompt：明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑。
+面向 Coding Agent 的 Markdown-first 轻量压力路由 skill。触发边界只看当前 prompt：明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑。
 
 Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把它转成 agent 下一步回复、工作顺序和验证方式。
 
@@ -16,9 +16,11 @@ Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把�
 - **愤怒/挫败**：先止损，找出失败点，给最小修复路径。
 - **困惑**：说明现在正在做什么、当前卡点是什么、下一步是什么，用通俗语言恢复工作节奏。
 
+止损例外：如果用户质疑权限或未授权改动，即使同时很急，也走愤怒/挫败路由——先停手，再最小修复。
+
 ## 结构
 
-ClawHub 发布包：
+市场发布包：
 
 - `SKILL.md`：触发边界、优先级和路由选择
 - `LICENSE`：包许可
@@ -33,8 +35,7 @@ GitHub 仓库额外保留：
 - `references/`：旧设计说明和不进入安装包的验证参考
 - `assets/`、`demo/`、`reports/`：校准材料、本地样例和测试证据
 
-市场发布时先按显式 allowlist 生成 staging 目录，再从 staging 目录发布。
-`.clawhubignore` 只作为误从仓库根目录发布时的第二层保护，不是发布清单的唯一真相来源。
+发布 allowlist 以 `scripts/bundle_manifest_check.py` 为准；`.clawhubignore` 只做二次防护。
 
 ## 使用方式
 
@@ -52,27 +53,21 @@ Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹
 
 ## 验证
 
-2.0.x Markdown skill 发布门禁：
+2.0.4 发布门禁：
 
 ```bash
 python -B scripts/route_ablation_test.py
 python -B scripts/markdown_skill_audit.py
 python -B scripts/bundle_manifest_check.py
+python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
+python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
 python -B scripts/marketplace_tag_audit.py
 git diff --check
 ```
 
-`route_ablation_test.py` 是确定性的契约与冻结 fixture 回放，不是 live 模型测试。
-Fresh subagent forward test 才是行为检查，覆盖急迫、愤怒/挫败、困惑、急迫+愤怒冲突和非触发场景。
+`route_ablation_test.py` 是 cue 契约代理 + 冻结范文打分，不是 live 模型基准。真实行为仍靠 subagent forward test。
 
-dry-run 或正式发布前生成精确市场包：
-
-```bash
-python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
-python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
-```
-
-Legacy v1 runtime 回归可选运行，但其结果不能作为 2.0.x skill 行为证据：
+Legacy v1 runtime 回归可选，不作为 2.0.x skill 行为证据：
 
 ```bash
 python -B scripts/smoke_test.py --strict

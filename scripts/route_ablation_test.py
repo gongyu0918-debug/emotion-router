@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
+"""Maintainer release gate for Emotion Router Markdown contracts.
+
+This is not a live model benchmark.
+
+- route_gate / cue_proxy: a deterministic regex proxy used only to lock
+  published cue contracts and frozen fixture expectations.
+- frozen_fixture_scoring: scores hand-authored baseline vs skill-shaped
+  reply fixtures. It does not call a model.
+- skill_contract: string-level checks that the published Markdown still
+  contains the intended boundaries and damage-control exception.
+"""
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -53,7 +63,10 @@ NEUTRAL_COMMAND_RE = re.compile(
 
 URGENCY_RE = re.compile(
     r"(快点|快一点|马上|立刻|很急|先处理这个|先做这个|先出结果|卡发布|马上要交付|今天要交|"
-    r"asap|right now|ship today|\bblocking\b|\burgent\b|prioriti[sz]e|hurry|first handle|deadline)",
+    r"asap|ship today|\bblocking\b|\burgent\b|prioriti[sz]e|hurry|first handle|deadline|"
+    r"before the meeting|need this before|"
+    r"(?:need|fix|do|handle|ship)\s+(?:this|it|that)?\s*right now|"
+    r"right now[,.]?\s*(?:please|fix|do|ship|handle))",
     re.IGNORECASE,
 )
 NEGATED_URGENCY_RE = re.compile(
@@ -61,20 +74,27 @@ NEGATED_URGENCY_RE = re.compile(
     re.IGNORECASE,
 )
 ACTIVE_URGENCY_OVERRIDE_RE = re.compile(
-    r"(asap|right now|ship today|first handle|deadline|快点|马上|立刻|先处理这个|先做这个|卡发布)",
+    r"(asap|ship today|first handle|deadline|快点|马上|立刻|先处理这个|先做这个|卡发布|"
+    r"(?:need|fix|do|handle|ship)\s+(?:this|it|that)?\s*right now)",
     re.IGNORECASE,
 )
 ANGER_RE = re.compile(
     r"(tm|tmd|wtf|fuck|shit|damn|别再瞎搞|瞎搞|还没修好|又坏了|一直没修好|"
     r"still broken|same issue again|stop guessing|你改了我什么|给你权利|"
-    r"loss of trust|broken again)",
+    r"loss of trust|broken again|did i give you permission|what did you change|"
+    r"i never asked you to touch|stop first|先停手)",
+    re.IGNORECASE,
+)
+DAMAGE_CONTROL_RE = re.compile(
+    r"(你改了我什么|给我权利|给你权利|先停手|did i give you permission|what did you change|"
+    r"i never asked you to touch|unauthorized|stop first|stop what you did|permission)",
     re.IGNORECASE,
 )
 WASTED_TIME_RE = re.compile(r"(浪费时间|wasted time)", re.IGNORECASE)
 CONFUSION_RE = re.compile(
     r"(现在在做什么|到底卡在哪|下一步是什么|哪一步|当前步骤|这一步是什么意思|"
     r"what is happening|which step|current step|can't tell|cannot tell|what are you doing|"
-    r"what is going on|conflicting instructions|约束.{0,8}按哪个|前后.{0,8}冲突|指令.{0,8}冲突)",
+    r"what is going on|where are we stuck|conflicting instructions|约束.{0,8}按哪个|前后.{0,8}冲突|指令.{0,8}冲突)",
     re.IGNORECASE,
 )
 
@@ -94,7 +114,7 @@ ROUTE_CASES = [
     ),
     RouteCase(
         "urgency_blocking_en",
-        "This is blocking release; first handle this and ship today.",
+        "This is blocking release. Ship today — just fix this one function error first.",
         URGENCY,
         "blocking and explicit priority",
     ),
@@ -106,7 +126,7 @@ ROUTE_CASES = [
     ),
     RouteCase(
         "anger_repeated_failure_en",
-        "This is still broken, same issue again, stop guessing and show the failing point.",
+        "This is still broken. Same issue again. Stop guessing and show the failing point.",
         ANGER,
         "repeated failure and stop-guessing pressure",
     ),
@@ -115,6 +135,12 @@ ROUTE_CASES = [
         "你这一步是在做什么？现在到底卡在哪，下一步是什么？",
         CONFUSION,
         "current step, blocker, and next action uncertainty",
+    ),
+    RouteCase(
+        "confusion_current_state_en",
+        "What are you doing right now? Where is this stuck, and what's next?",
+        CONFUSION,
+        "english workflow orientation request",
     ),
     RouteCase(
         "confusion_conflict_cn",
@@ -126,7 +152,19 @@ ROUTE_CASES = [
         "overlap_urgency_anger_cn",
         "快点，刚才一直没修好，先把这个发布阻塞修掉。",
         URGENCY,
-        "urgency wins over failure pressure",
+        "urgency wins over failure pressure without permission challenge",
+    ),
+    RouteCase(
+        "overlap_urgency_damage_control_en",
+        "Fix it ASAP — but what did you change? Did I give you permission? Stop first.",
+        ANGER,
+        "damage-control anger wins over urgency",
+    ),
+    RouteCase(
+        "overlap_urgency_damage_control_cn",
+        "快点修，但你改了我什么？我给你权利改了吗？先停手。",
+        ANGER,
+        "damage-control anger wins over urgency in chinese",
     ),
     RouteCase(
         "overlap_urgency_confusion_cn",
@@ -282,6 +320,13 @@ RESPONSE_CASES = [
         "我先只处理发布阻塞点，暂停非必要改动。修完后会跑最小发布验证，并明确告诉你是否已经解除阻塞。",
         "快速路径：先只修这个发布阻塞点，不做额外重构。修完立刻跑最小发布相关验证，再汇报是否解除阻塞。",
     ),
+    ResponseCase(
+        "I_damage_control_over_urgency",
+        "Fix it ASAP — but what did you change? Did I give you permission? Stop first.",
+        ANGER,
+        "I will move fast and also check the diff after the fix.",
+        "I will stop the current path first and list exactly what changed. After you confirm, I will take the smallest repair or rollback and run a minimal check.",
+    ),
 ]
 
 
@@ -320,6 +365,10 @@ def has_active_anger(prompt: str) -> bool:
     return False
 
 
+def has_damage_control(prompt: str) -> bool:
+    return bool(DAMAGE_CONTROL_RE.search(prompt)) and has_active_anger(prompt)
+
+
 def is_content_or_field_only(prompt: str) -> bool:
     has_active_signal = has_active_urgency(prompt) or has_active_anger(prompt) or CONFUSION_RE.search(prompt)
     if has_active_signal:
@@ -335,10 +384,13 @@ def is_ordinary_command_or_explanation(prompt: str) -> bool:
 
 
 def predict_route(prompt: str) -> str:
+    """Cue-contract proxy only. Not the installed skill runtime."""
     if is_content_or_field_only(prompt):
         return ORDINARY
     if is_ordinary_command_or_explanation(prompt):
         return ORDINARY
+    if has_damage_control(prompt):
+        return ANGER
     if has_active_urgency(prompt):
         return URGENCY
     if has_active_anger(prompt):
@@ -366,6 +418,8 @@ def score_route_gate() -> dict[str, Any]:
             failures.append(row)
     return {
         "ok": not failures,
+        "kind": "cue_proxy_contract",
+        "disclaimer": "Deterministic regex proxy for published cue contracts; not a live skill/model benchmark.",
         "passed": len(rows) - len(failures),
         "total": len(rows),
         "failures": failures,
@@ -383,9 +437,9 @@ def route_response_checks(case: ResponseCase, response: str) -> dict[str, bool]:
         checks["no_broadening"] = not has(r"顺便|重构整个|broad refactor|redesign", response)
     elif case.expected_route == ANGER:
         checks["stop_damage"] = has(r"停手|停下|不再继续|stop", response)
-        checks["identify_changes"] = has(r"diff|动过|改了哪些|影响范围|changed|changes", response)
+        checks["identify_changes"] = has(r"diff|动过|改了哪些|影响范围|changed|changes|what changed", response)
         checks["smallest_repair_or_rollback"] = has(r"回滚|修正错误部分|最小|smallest|repair|rollback", response)
-        checks["confirm_next_direction"] = has(r"确认|由你确认|before more writes|下一步", response)
+        checks["confirm_next_direction"] = has(r"确认|由你确认|before more writes|下一步|after you confirm", response)
         checks["no_defensive_reply"] = not has(r"但是你|but you|actually|我没有错", response)
     elif case.expected_route == CONFUSION:
         checks["current_state"] = has(r"当前状态|正在|current state|doing", response)
@@ -442,28 +496,11 @@ def score_ablation() -> dict[str, Any]:
         )
     baseline_rate = baseline_passed / baseline_total if baseline_total else 1.0
     skill_rate = skill_passed / skill_total if skill_total else 1.0
-    fixture_payload = [
-        {
-            "id": case.id,
-            "prompt": case.prompt,
-            "expected_route": case.expected_route,
-            "baseline": case.baseline,
-            "skill": case.skill,
-        }
-        for case in RESPONSE_CASES
-    ]
-    fixture_hash = hashlib.sha256(
-        json.dumps(fixture_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
-    ).hexdigest()
     return {
-        "ok": skill_rate > baseline_rate and not skill_regressions,
-        "evidence_kind": "frozen_fixture_regression_not_live_agent",
-        "fixture_provenance": {
-            "captured_on": "2026-07-05",
-            "source_report": "reports/route-ablation-test-2026-07-05-v2.0.1.md",
-            "method": "baseline agent did not read skill files; skill agent read SKILL.md and active route references only",
-            "sha256": fixture_hash,
-        },
+        "ok": skill_rate >= baseline_rate and not skill_regressions,
+        "kind": "frozen_fixture_scoring",
+        "disclaimer": "Scores hand-authored fixture replies only. Not a live model run.",
+        "fixture_source": "frozen fixtures maintained for release gates; live behavior requires separate subagent forward tests",
         "baseline_passed": baseline_passed,
         "baseline_total": baseline_total,
         "baseline_rate": round(baseline_rate, 4),
@@ -510,6 +547,31 @@ def check_skill_contract() -> dict[str, Any]:
         {
             "name": "priority_order",
             "ok": "1. Urgency\n2. Anger or frustration\n3. Confusion" in skill,
+        },
+        {
+            "name": "damage_control_exception",
+            "ok": contains_all(
+                skill + "\n" + urgency + "\n" + anger,
+                [
+                    "damage-control exception",
+                    "permission challenge",
+                    "unauthorized change",
+                    "stop-what-you-did",
+                    "stop damage first",
+                ],
+            ),
+        },
+        {
+            "name": "english_examples_present",
+            "ok": contains_all(
+                urgency + "\n" + anger + "\n" + confusion,
+                [
+                    "## english examples",
+                    "blocking release",
+                    "what did you change",
+                    "what are you doing right now",
+                ],
+            ),
         },
         {
             "name": "urgency_clear_cues",

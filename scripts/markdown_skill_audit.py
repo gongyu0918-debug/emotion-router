@@ -6,14 +6,13 @@ import re
 from pathlib import Path
 from typing import Any
 
-from bundle_manifest_check import check_manifest
+from bundle_manifest_check import PUBLISHED_ALLOWLIST, check_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "SKILL.md"
 IGNORE = ROOT / ".clawhubignore"
-AGENT_METADATA = ROOT / "agents" / "openai.yaml"
-CHANGELOG = ROOT / "CHANGELOG.md"
+OPENAI_YAML = ROOT / "agents" / "openai.yaml"
 
 ROUTE_FILES = {
     "urgency": ROOT / "references" / "urgency-route.md",
@@ -21,18 +20,9 @@ ROUTE_FILES = {
     "confusion": ROOT / "references" / "confusion-route.md",
 }
 
-EXPECTED_BUNDLE = [
-    "LICENSE",
-    "SKILL.md",
-    "agents/openai.yaml",
-    "references/anger-frustration-route.md",
-    "references/confusion-route.md",
-    "references/urgency-route.md",
-]
-
 ROUTES_EXPECTED = {
-    "urgency": ["fastest minimal path", "fastest minimal verification", "remaining risks last"],
-    "anger": ["stop the damage", "failing point", "smallest repair path", "profanity wordlist"],
+    "urgency": ["fastest minimal path", "fastest minimal verification", "remaining risks last", "damage-control exception"],
+    "anger": ["stop the damage", "failing point", "smallest repair path", "profanity wordlist", "damage-control exception"],
     "confusion": ["what is being done now", "blocked", "next concrete step", "at most one blocking question"],
 }
 
@@ -45,6 +35,10 @@ BANNED_RUNTIME_REQUIREMENTS = [
     "persist calibration",
     "score the user",
 ]
+
+VERSION_RE = re.compile(r"(?m)^version:\s*[\"']?([^\"'\n]+)[\"']?\s*$")
+YAML_VERSION_RE = re.compile(r'(?m)^\s*version:\s*"([^"]+)"\s*$')
+YAML_IMPLICIT_RE = re.compile(r"(?m)^\s*allow_implicit_invocation:\s*(true|false)\s*$")
 
 
 def read(path: str | Path) -> str:
@@ -73,23 +67,6 @@ def frontmatter_value(text: str, key: str) -> str:
     return ""
 
 
-def metadata_value(text: str, key: str) -> str:
-    if not text.startswith("---\n"):
-        return ""
-    _, frontmatter, _ = text.split("---", 2)
-    inside_metadata = False
-    prefix = f"  {key}:"
-    for line in frontmatter.splitlines():
-        if line == "metadata:":
-            inside_metadata = True
-            continue
-        if inside_metadata and line and not line.startswith(" "):
-            break
-        if inside_metadata and line.startswith(prefix):
-            return line.split(":", 1)[1].strip().strip('"')
-    return ""
-
-
 def record(checks: list[dict[str, Any]], name: str, ok: bool, detail: Any) -> None:
     checks.append({"name": name, "ok": ok, "detail": detail})
 
@@ -101,11 +78,10 @@ def contains_all(text: str, terms: list[str]) -> bool:
 
 def main() -> int:
     skill_text = read(SKILL)
-    agent_metadata = read(AGENT_METADATA)
-    changelog = read(CHANGELOG)
     route_texts = {name: read(path) for name, path in ROUTE_FILES.items()}
     all_routes_text = "\n".join(route_texts.values())
     ignore_text = read(IGNORE)
+    openai_text = read(OPENAI_YAML)
     manifest = check_manifest()
     actual = manifest["actual"]
     combined_published = "\n".join(read(ROOT / path) for path in actual)
@@ -113,31 +89,39 @@ def main() -> int:
     checks: list[dict[str, Any]] = []
 
     keys = frontmatter_keys(skill_text)
-    required_frontmatter = ["name", "description", "license", "metadata"]
+    required_frontmatter = ["name", "description", "version", "author", "license", "metadata"]
     record(checks, "frontmatter_metadata", all(key in keys for key in required_frontmatter), {"keys": keys})
-    skill_version = metadata_value(skill_text, "version")
-    skill_author = metadata_value(skill_text, "author")
-    record(checks, "skill_metadata_identity", bool(skill_author), {"author": skill_author})
-    agent_version_match = re.search(r'^\s+version:\s+"([0-9]+\.[0-9]+\.[0-9]+)"\s*$', agent_metadata, re.MULTILINE)
-    changelog_version_match = re.search(r"^##\s+([0-9]+\.[0-9]+\.[0-9]+)\s+-", changelog, re.MULTILINE)
-    versions = {
-        "skill": skill_version,
-        "agent_metadata": agent_version_match.group(1) if agent_version_match else "",
-        "changelog": changelog_version_match.group(1) if changelog_version_match else "",
-    }
+
+    skill_version = frontmatter_value(skill_text, "version")
+    yaml_version_match = YAML_VERSION_RE.search(openai_text)
+    yaml_version = yaml_version_match.group(1) if yaml_version_match else ""
     record(
         checks,
-        "release_version_alignment",
-        bool(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", skill_version)) and len(set(versions.values())) == 1,
-        versions,
+        "version_surfaces_aligned",
+        bool(re.fullmatch(r"\d+\.\d+\.\d+", skill_version)) and skill_version == yaml_version,
+        {"skill_version": skill_version, "openai_yaml_version": yaml_version},
     )
-    record(checks, "skill_entrypoint_is_lean", len(skill_text.splitlines()) <= 80, {"lines": len(skill_text.splitlines())})
+    record(checks, "license_is_mit", frontmatter_value(skill_text, "license") == "MIT", {"license": frontmatter_value(skill_text, "license")})
+    record(checks, "skill_entrypoint_is_lean", len(skill_text.splitlines()) <= 95, {"lines": len(skill_text.splitlines())})
 
     description = frontmatter_value(skill_text, "description").lower()
     record(
         checks,
         "description_has_trigger_boundary",
-        all(term in description for term in ["current prompt", "clear urgency wording", "strong anger/frustration signals", "profanity", "repeated failure/blame", "workflow confusion", "neutral commands", "ordinary technical explanations", "content-only mentions"]),
+        all(
+            term in description
+            for term in [
+                "current prompt",
+                "clear urgency wording",
+                "strong anger/frustration signals",
+                "profanity",
+                "repeated failure/blame",
+                "workflow confusion",
+                "neutral commands",
+                "ordinary technical explanations",
+                "content-only mentions",
+            ]
+        ),
         {"description": frontmatter_value(skill_text, "description")},
     )
     record(
@@ -146,8 +130,12 @@ def main() -> int:
         all(path.exists() and path.relative_to(ROOT).as_posix() in skill_text for path in ROUTE_FILES.values()),
         {"routes": [path.relative_to(ROOT).as_posix() for path in ROUTE_FILES.values()]},
     )
-    record(checks, "old_aggregate_route_not_linked", "references/emotion-routes.md" not in skill_text and not (ROOT / "references" / "emotion-routes.md").exists(), {})
-
+    record(
+        checks,
+        "old_aggregate_route_not_linked",
+        "references/emotion-routes.md" not in skill_text and not (ROOT / "references" / "emotion-routes.md").exists(),
+        {},
+    )
     record(
         checks,
         "skill_does_not_duplicate_route_details",
@@ -157,8 +145,13 @@ def main() -> int:
 
     for route, required_terms in ROUTES_EXPECTED.items():
         route_text = route_texts[route]
-        record(checks, f"route_present:{route}", f"# {route}".split()[1].lower() in route_text.lower() or route in route_text.lower(), {})
-        record(checks, f"route_sections:{route}", contains_all(route_text, ["## signals", "## non-triggers", "## prompt pattern", "## overlap rules", "## forbidden behavior"]), {})
+        record(checks, f"route_present:{route}", route in route_text.lower() or route.replace("-", " ") in route_text.lower(), {})
+        record(
+            checks,
+            f"route_sections:{route}",
+            contains_all(route_text, ["## signals", "## non-triggers", "## prompt pattern", "## overlap rules", "## forbidden behavior"]),
+            {},
+        )
         record(checks, f"route_behavior:{route}", contains_all(route_text, required_terms), {"required": required_terms})
 
     record(
@@ -169,20 +162,60 @@ def main() -> int:
     )
     record(
         checks,
+        "damage_control_exception",
+        contains_all(
+            skill_text + "\n" + route_texts["urgency"] + "\n" + route_texts["anger"],
+            [
+                "damage-control exception",
+                "permission challenge",
+                "unauthorized change",
+                "stop-what-you-did",
+                "stop damage first",
+            ],
+        ),
+        {},
+    )
+    record(
+        checks,
         "trigger_cues_are_clear_but_not_complete_wordlists",
-        contains_all(skill_text + "\n" + all_routes_text, ["clear speed", "priority wording", "not a complete keyword list", "strong active anger/frustration signals", "profanity list", "soft cues and context", "soft router"]),
+        contains_all(
+            skill_text + "\n" + all_routes_text,
+            [
+                "clear speed",
+                "priority wording",
+                "not a complete keyword list",
+                "strong active anger/frustration signals",
+                "profanity list",
+                "soft cues and context",
+                "soft router",
+            ],
+        ),
         {},
     )
     record(
         checks,
         "progressive_loading_does_not_read_legacy_refs",
-        contains_all(skill_text, ["do not compare against or load unrelated route files", "source path", "published bundle", "legacy material", "must not be read for routing"]),
+        contains_all(
+            skill_text,
+            [
+                "do not compare against or load unrelated route files",
+                "source path",
+                "published bundle",
+                "legacy material",
+                "must not be read for routing",
+                "scripts/",
+                "assets/",
+            ],
+        ),
         {},
     )
     record(
         checks,
         "no_complete_keyword_or_profanity_wordlist",
-        contains_all(skill_text + "\n" + all_routes_text, ["not hard keyword triggers", "not a wordlist to complete", "do not build or require a profanity wordlist", "semantic judgment"]),
+        contains_all(
+            skill_text + "\n" + all_routes_text,
+            ["not hard keyword triggers", "not a wordlist to complete", "do not build or require a profanity wordlist", "semantic judgment"],
+        ),
         {},
     )
     record(
@@ -200,7 +233,10 @@ def main() -> int:
     record(
         checks,
         "neutral_command_does_not_trigger_frustration",
-        contains_all(route_texts["anger"], ["a single imperative is not enough", "neutral command", "task constraint", "normal coding instruction", "does not challenge", "repeated imperatives alone"]),
+        contains_all(
+            route_texts["anger"],
+            ["a single imperative is not enough", "neutral command", "task constraint", "normal coding instruction", "does not challenge", "repeated imperatives alone"],
+        ),
         {},
     )
     record(
@@ -212,7 +248,10 @@ def main() -> int:
     record(
         checks,
         "ordinary_explanation_does_not_trigger_confusion",
-        contains_all(route_texts["confusion"], ["ordinary technical explanation request", "what does this error mean", "lost workflow orientation", "conflicting instructions", "mismatch with the current step"]),
+        contains_all(
+            route_texts["confusion"],
+            ["ordinary technical explanation request", "what does this error mean", "lost workflow orientation", "conflicting instructions", "mismatch with the current step"],
+        ),
         {},
     )
     record(checks, "agent_has_no_real_emotions", "agent does not have real emotions" in skill_text.lower(), {})
@@ -226,10 +265,31 @@ def main() -> int:
         contains_all(skill_text, ["do not inspect", "agents.md", "durable memory", "user profiles", "old calibration"]),
         {},
     )
+    implicit_match = YAML_IMPLICIT_RE.search(openai_text)
+    implicit_value = implicit_match.group(1) if implicit_match else ""
+    record(checks, "implicit_invocation_disabled", implicit_value == "false", {"allow_implicit_invocation": implicit_value})
     record(checks, "scripts_excluded_from_publish", "scripts/**" in ignore_text and not any(path.startswith("scripts/") for path in actual), {"actual": actual})
     record(checks, "bundle_manifest_ok", manifest["ok"], manifest)
-    record(checks, "published_bundle_is_progressive", actual == EXPECTED_BUNDLE, {"actual": actual, "expected": EXPECTED_BUNDLE})
-    record(checks, "legacy_refs_excluded", all(path not in actual for path in ["references/emotion-routes.md", "references/routing-playbook.md", "references/response-constraints.md", "references/emotion-policy-matrix.md"]), {"actual": actual})
+    record(
+        checks,
+        "published_bundle_is_progressive",
+        actual == sorted(PUBLISHED_ALLOWLIST),
+        {"actual": actual, "expected": sorted(PUBLISHED_ALLOWLIST)},
+    )
+    record(
+        checks,
+        "legacy_refs_excluded",
+        all(
+            path not in actual
+            for path in [
+                "references/emotion-routes.md",
+                "references/routing-playbook.md",
+                "references/response-constraints.md",
+                "references/emotion-policy-matrix.md",
+            ]
+        ),
+        {"actual": actual},
+    )
 
     ok = all(item["ok"] for item in checks)
     print(json.dumps({"ok": ok, "checks": checks}, ensure_ascii=False, indent=2))

@@ -1,12 +1,18 @@
 # Changelog
 
+## 2.0.4 - 2026-07-17
+
+- added a damage-control exception: permission challenge / unauthorized change / stop-what-you-did wins over urgency
+- strengthened natural English examples for urgency, anger/frustration, and confusion routes
+- disabled implicit invocation in `agents/openai.yaml` to match cautious triggers
+- made the publish allowlist the release source of truth and added `--stage` packaging for ClawHub/SkillHub
+- aligned version surfaces to `2.0.4` / MIT and stopped hardcoding a single patch version in audits
+- labeled release gates honestly: cue-proxy contracts and frozen-fixture scoring are not live model benchmarks
+- hardened source-path legacy isolation so `scripts/`, `assets/`, `demo/`, and non-published `references/*` are not used for routing
+
 ## 2.0.3 - 2026-07-12
 
-- separated v2 Markdown skill release gates from legacy runtime regression checks so green legacy smoke output is not presented as live skill behavior evidence
-- changed the canonical marketplace release path to stage an explicit six-file ClawHub allowlist or five-file SkillHub allowlist before publishing
-- labeled the deterministic route ablation as a frozen fixture replay and added source provenance plus a stable fixture hash
-- replaced the hard-coded version audit with cross-file release version alignment and added a focused v2 CI gate
-- moved version and author into standard frontmatter metadata so the published skill passes the current Agent Skills schema validator
+- evidence-safe packaging and validation maintenance release on ClawHub; three-route behavior unchanged from 2.0.2
 
 ## 2.0.2 - 2026-07-05
 

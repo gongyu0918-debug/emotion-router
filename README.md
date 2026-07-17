@@ -1,6 +1,6 @@
 # Emotion Router
 
-[简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill`
+[简体中文](./README.zh-CN.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill` · `skillhub install emotion-skill`
 
 Markdown-first soft routing for coding agents when the current prompt shows
 clear urgency wording, strong anger/frustration signals, or workflow confusion
@@ -20,9 +20,13 @@ Emotion Router keeps the response stable through three routes:
 - **Anger or frustration**: stop the damage, locate the failing point, find the smallest repair path.
 - **Confusion**: say what is being done now, what is blocked, and what happens next in plain language.
 
+Damage-control exception: if the user challenges permission or unauthorized
+changes, anger/frustration wins even when urgency is also present. Stop first,
+then repair fast.
+
 ## Structure
 
-Published ClawHub bundle:
+Published marketplace bundle:
 
 - `SKILL.md`: trigger boundary, priority, and route selection
 - `LICENSE`: package license
@@ -37,9 +41,8 @@ GitHub-only maintenance files:
 - `references/`: older design notes and non-published validation references
 - `assets/`, `demo/`, `reports/`: calibration, local examples, and test evidence
 
-The canonical marketplace release path stages this explicit allowlist before
-publishing. `.clawhubignore` remains defense in depth for accidental root-folder
-publishes; it is not the release source of truth.
+The publish allowlist in `scripts/bundle_manifest_check.py` is the release source
+of truth. `.clawhubignore` is defense in depth only.
 
 ## Use
 
@@ -59,27 +62,22 @@ over-routing, but they are not complete keyword or profanity wordlists.
 
 ## Validation
 
-2.0.x Markdown skill release gates:
+2.0.4 Markdown skill release gates:
 
 ```bash
 python -B scripts/route_ablation_test.py
 python -B scripts/markdown_skill_audit.py
 python -B scripts/bundle_manifest_check.py
+python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
+python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
 python -B scripts/marketplace_tag_audit.py
 git diff --check
 ```
 
-`route_ablation_test.py` is a deterministic contract and frozen-fixture replay,
-not a live model benchmark. Fresh subagent forward tests are the behavior check
-for urgency, anger/frustration, confusion, urgency+anger overlap, and non-trigger
-cases.
-
-Stage the exact marketplace package before a dry run or live publish:
-
-```bash
-python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
-python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
-```
+`route_ablation_test.py` is a deterministic cue-contract proxy plus frozen-fixture
+scoring. It is not a live model benchmark. Fresh subagent forward tests are the
+behavior check for urgency, anger/frustration, confusion, damage-control overlap,
+and non-trigger cases.
 
 Legacy v1 runtime regression, optional and not evidence for 2.0.x skill behavior:
 

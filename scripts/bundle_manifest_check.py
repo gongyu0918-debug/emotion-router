@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import shutil
@@ -14,7 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "SKILL.md"
 IGNORE_FILE = ROOT / ".clawhubignore"
 MANIFEST_ITEM_RE = re.compile(r"^\s*-\s+`([^`]+)`\s*$")
-EXPECTED_CLAWHUB_BUNDLE = [
+
+# Explicit allowlist is the release source of truth.
+PUBLISHED_ALLOWLIST = [
     "LICENSE",
     "SKILL.md",
     "agents/openai.yaml",
@@ -47,7 +48,8 @@ def ignored(path: str, patterns: list[str]) -> bool:
     return False
 
 
-def actual_bundle_files() -> list[str]:
+def ignore_derived_bundle_files() -> list[str]:
+    """Defense-in-depth view from .clawhubignore. Not the release source of truth."""
     patterns = read_ignore_patterns()
     files: list[str] = []
     for path in ROOT.rglob("*"):
@@ -82,85 +84,71 @@ def documented_bundle_files() -> list[str]:
     return sorted(files)
 
 
+def stage_bundle(stage_dir: Path) -> list[str]:
+    if stage_dir.exists():
+        shutil.rmtree(stage_dir)
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    staged: list[str] = []
+    for rel in PUBLISHED_ALLOWLIST:
+        src = ROOT / rel
+        if not src.is_file():
+            raise FileNotFoundError(f"missing allowlisted file: {rel}")
+        dest = stage_dir / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        staged.append(rel)
+    return sorted(staged)
+
+
 def check_manifest() -> dict[str, Any]:
-    actual = actual_bundle_files()
+    allowlist = sorted(PUBLISHED_ALLOWLIST)
     documented = documented_bundle_files()
-    missing_sources = [path for path in documented if not (ROOT / path).is_file()]
-    return {
-        "ok": actual == documented == EXPECTED_CLAWHUB_BUNDLE and not missing_sources,
-        "actual_count": len(actual),
-        "documented_count": len(documented),
-        "missing_from_docs": sorted(set(actual) - set(documented)),
-        "missing_from_bundle": sorted(set(documented) - set(actual)),
-        "missing_sources": missing_sources,
-        "actual": actual,
-        "documented": documented,
-        "expected": EXPECTED_CLAWHUB_BUNDLE,
-    }
-
-
-def stage_bundle(output: Path, target: str) -> dict[str, Any]:
-    manifest = check_manifest()
-    if not manifest["ok"]:
-        raise ValueError("bundle manifest must pass before staging")
-
-    output = output.resolve()
-    if output in {ROOT, ROOT.parent}:
-        raise ValueError("refusing to stage over the repository or its parent")
-    if output.exists():
-        if not output.is_dir():
-            raise ValueError(f"staging path is not a directory: {output}")
-        if any(output.iterdir()):
-            raise ValueError(f"staging directory is not empty: {output}")
-
-    selected = list(EXPECTED_CLAWHUB_BUNDLE)
-    if target == "skillhub":
-        selected.remove("LICENSE")
-
-    output.mkdir(parents=True, exist_ok=True)
-    for relative in selected:
-        source = ROOT / relative
-        destination = output / relative
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, destination)
-
-    staged = sorted(
-        path.relative_to(output).as_posix()
-        for path in output.rglob("*")
-        if path.is_file()
+    ignore_derived = ignore_derived_bundle_files()
+    missing_files = [rel for rel in allowlist if not (ROOT / rel).is_file()]
+    ok = (
+        allowlist == documented
+        and allowlist == ignore_derived
+        and not missing_files
     )
-    digest = hashlib.sha256()
-    for relative in staged:
-        digest.update(relative.encode("utf-8"))
-        digest.update(b"\0")
-        digest.update((output / relative).read_bytes())
-        digest.update(b"\0")
     return {
-        "ok": staged == sorted(selected),
-        "target": target,
-        "output": str(output),
-        "files": staged,
-        "count": len(staged),
-        "sha256": digest.hexdigest(),
+        "ok": ok,
+        "source_of_truth": "PUBLISHED_ALLOWLIST",
+        "allowlist": allowlist,
+        "documented": documented,
+        "ignore_derived": ignore_derived,
+        "missing_files": missing_files,
+        "missing_from_docs": sorted(set(allowlist) - set(documented)),
+        "missing_from_allowlist": sorted(set(documented) - set(allowlist)),
+        "ignore_extra": sorted(set(ignore_derived) - set(allowlist)),
+        "ignore_missing": sorted(set(allowlist) - set(ignore_derived)),
+        # Back-compat keys used by markdown_skill_audit.
+        "actual": ignore_derived,
+        "actual_count": len(ignore_derived),
+        "documented_count": len(documented),
+        "missing_from_bundle": sorted(set(documented) - set(ignore_derived)),
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate or stage the explicit marketplace bundle allowlist.")
-    parser.add_argument("--stage", type=Path, help="Copy only allowlisted files into this empty directory.")
-    parser.add_argument("--target", choices=("clawhub", "skillhub"), default="clawhub")
+    parser = argparse.ArgumentParser(description="Check or stage the published skill bundle.")
+    parser.add_argument("--stage", type=Path, help="Stage allowlisted files into this directory")
+    parser.add_argument(
+        "--target",
+        choices=("clawhub", "skillhub"),
+        default="clawhub",
+        help="Marketplace target label for staged output metadata",
+    )
     args = parser.parse_args()
 
-    if args.stage:
-        try:
-            result = stage_bundle(args.stage, args.target)
-        except ValueError as exc:
-            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
-            return 1
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if result["ok"] else 1
-
     result = check_manifest()
+    if args.stage:
+        staged = stage_bundle(args.stage)
+        result["staged"] = staged
+        result["stage_dir"] = str(args.stage)
+        result["target"] = args.target
+        result["stage_ok"] = staged == sorted(PUBLISHED_ALLOWLIST)
+        result["ok"] = result["ok"] and result["stage_ok"]
+
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
 

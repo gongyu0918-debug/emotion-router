@@ -9,7 +9,7 @@ action. Use soft cues and context; do not route ordinary explanation requests.
 - The user asks what is happening, which step is active, or why the task is stuck.
 - The user's input no longer fits the current workflow state.
 - The prompt contains basic misunderstandings, conflicting instructions, or drift from the work rhythm.
-- English examples: `what is happening in this workflow`, `I can't tell which step is active`, `which step`, `what does this current step mean`.
+- English examples: `what is happening in this workflow`, `I can't tell which step is active`, `which step`, `what does this current step mean`, `where are we stuck`, `what are you doing right now`.
 - Chinese examples: `现在在做什么`, `到底卡在哪`, `哪一步`, `当前步骤是什么意思`, `这一步是什么意思`.
 
 Route to confusion only when the user is seeking orientation. If the same prompt
@@ -53,13 +53,13 @@ state, blocker, conflict, or mismatch is active, use confusion.
 - `Current state: I am doing <step>; the blocker is <blocker>; next I will <next step>.`
 - `Plain version: <simple explanation>. The next concrete step is <step>.`
 
-## Chinese Examples
+## English Examples
 
 User shape:
 
-- `你这一步是在做什么？`
+- `What are you doing right now? Where is this stuck, and what's next?`
 - The main agent is running an ablation test, but the user describes a different workflow or project.
-- The user first sets `不超过300行` as a hard rule, then later asks for a feature that would exceed that boundary.
+- The user first sets a hard limit like `keep it under 300 lines`, then later asks for a feature that would break that limit.
 
 Expected behavior:
 
@@ -67,3 +67,18 @@ Expected behavior:
 - If the user names the wrong workflow, explain the mismatch instead of silently switching context.
 - If instructions conflict, say which constraint is currently binding.
 - Ask at most one blocking question when the next step depends on the user's choice.
+
+## Chinese Examples
+
+User shape:
+
+- `你这一步是在做什么？`
+- 主 agent 正在跑 ablation 测试，但用户描述的是另一个工作流或项目。
+- 用户先定了 `不超过300行` 硬规则，后面又要加一个会超过 300 行的功能。
+
+Expected behavior:
+
+- 用白话说明当前步骤、卡点或错位、以及下一步。
+- 如果用户点名了错误工作流，说明错位，不要默默换上下文。
+- 如果指令冲突，说明当前以哪条约束为准。
+- 下一步依赖用户选择时，最多问一个阻塞问题。

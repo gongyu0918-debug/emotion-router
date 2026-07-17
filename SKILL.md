@@ -1,10 +1,12 @@
 ---
 name: emotion-skill
+slug: emotion-skill
+displayName: Emotion Router
 description: Markdown-first soft router for coding agents when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Do not use for ordinary tasks, neutral commands, ordinary technical explanations, or content-only mentions of emotion words.
+version: 2.0.4
+author: gongyu0918-debug
 license: MIT
 metadata:
-  version: "2.0.3"
-  author: gongyu0918-debug
   hermes:
     tags: [emotion-routing, coding-agent, markdown-first]
 ---
@@ -41,6 +43,11 @@ Choose one route by priority:
 2. Anger or frustration
 3. Confusion
 
+Damage-control exception: if anger/frustration includes an active permission
+challenge, unauthorized change, or stop-what-you-did demand, load the anger or
+frustration route even when urgency is also present. Stop damage first, then use
+the fastest minimal repair and verification.
+
 If no route is active, do ordinary work and do not load a route reference.
 
 ## Progressive Loading
@@ -56,7 +63,7 @@ pattern, forbidden behavior, and examples. Do not compare against or load
 unrelated route files unless the selected route's overlap rule points to a
 higher-priority active route.
 
-When using this repository as a source path, treat only the Published Bundle files below as skill instructions. Other references are legacy material and must not be read for routing.
+When using this repository as a source path, treat only the Published Bundle files below as skill instructions. Other references are legacy material and must not be read for routing. Do not load `scripts/`, `assets/`, `demo/`, `reports/`, or non-published `references/*` for routing.
 
 ## Scripts Boundary
 

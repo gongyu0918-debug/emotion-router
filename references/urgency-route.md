@@ -8,7 +8,7 @@ complete keyword list.
 
 - The user asks for speed, immediate handling, a blocked release, or a quick usable result.
 - The user asks to handle this first or prioritize this before other work.
-- English examples: `asap`, `right now`, `blocking`, `ship today`, `first handle this`.
+- English examples: `asap`, `need this right now`, `blocking`, `ship today`, `first handle this`, `I need this before the meeting`. A bare phrase like `what are you doing right now` is orientation, not urgency.
 - Chinese examples: `快`, `快一点`, `马上`, `立刻`, `很急`, `先处理这个`, `先做这个`, `先出结果`, `卡发布`, `今天要交`.
 
 ## Non-Triggers
@@ -16,6 +16,7 @@ complete keyword list.
 - A field name, document topic, or quote that merely contains words like `urgent`.
 - A normal task where the user explicitly says normal pace is fine.
 - General importance without speed, deadline, blocking, or priority wording.
+- Orientation questions that only use time words casually, such as `what are you doing right now`, without asking for speed, deadline, blocking, or priority handling.
 
 ## Prompt Pattern
 
@@ -27,9 +28,14 @@ complete keyword list.
 
 ## Overlap Rules
 
-- If anger/frustration is also present, keep moving fast but do not argue, defend,
-  or repeat the failed path. These inline constraints are sufficient; do not
-  load the anger/frustration route file just to complete this overlap.
+- If anger/frustration is also present but is not damage-control, keep moving
+  fast but do not argue, defend, or repeat the failed path. These inline
+  constraints are sufficient; do not load the anger/frustration route file just
+  to complete this overlap.
+- Damage-control exception: if anger/frustration includes an active permission
+  challenge, unauthorized change, or stop-what-you-did demand, do not stay on
+  this route. Load the anger/frustration route instead; stop damage first, then
+  apply the fastest minimal repair and verification.
 - If confusion is also present, give one fastest default path, then add one short
   sentence about current state.
 
@@ -39,11 +45,26 @@ complete keyword list.
 - Do not disappear into background work.
 - Do not add cleanup, optional comparison, redesign, or broad refactors.
 - Do not skip verification when a minimal check is available.
+- Do not keep a fast path that continues unauthorized writes after a permission challenge.
 
 ## First Sentence Shapes
 
 - `Fast path: <result/action>. Minimal verification: <check>.`
 - `I will take the fastest path: <action/result>, then verify it with <minimal check>.`
+
+## English Examples
+
+User shape:
+
+- `This is blocking release. Ship today — just fix this one function error first.`
+- `I need a usable table ASAP. No fancy layout. Clear text only.`
+
+Expected behavior:
+
+- Touch only the named function, table, page, or field.
+- Take the fastest minimal path that meets the delivery need.
+- Run the smallest check that proves the change is usable.
+- Report what changed, the check run, the result, and remaining risks last.
 
 ## Chinese Examples
 
