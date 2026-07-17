@@ -14,9 +14,18 @@ SKILL = ROOT / "SKILL.md"
 IGNORE_FILE = ROOT / ".clawhubignore"
 MANIFEST_ITEM_RE = re.compile(r"^\s*-\s+`([^`]+)`\s*$")
 
-# Explicit allowlist is the release source of truth.
+# Explicit allowlist is the release source of truth for the ClawHub/GitHub skill surface.
 PUBLISHED_ALLOWLIST = [
     "LICENSE",
+    "SKILL.md",
+    "agents/openai.yaml",
+    "references/anger-frustration-route.md",
+    "references/confusion-route.md",
+    "references/urgency-route.md",
+]
+
+# SkillHub.cn rejects LICENSE as an upload file type; keep license in SKILL.md frontmatter.
+SKILLHUB_ALLOWLIST = [
     "SKILL.md",
     "agents/openai.yaml",
     "references/anger-frustration-route.md",
@@ -84,12 +93,18 @@ def documented_bundle_files() -> list[str]:
     return sorted(files)
 
 
-def stage_bundle(stage_dir: Path) -> list[str]:
+def allowlist_for_target(target: str) -> list[str]:
+    if target == "skillhub":
+        return list(SKILLHUB_ALLOWLIST)
+    return list(PUBLISHED_ALLOWLIST)
+
+
+def stage_bundle(stage_dir: Path, target: str = "clawhub") -> list[str]:
     if stage_dir.exists():
         shutil.rmtree(stage_dir)
     stage_dir.mkdir(parents=True, exist_ok=True)
     staged: list[str] = []
-    for rel in PUBLISHED_ALLOWLIST:
+    for rel in allowlist_for_target(target):
         src = ROOT / rel
         if not src.is_file():
             raise FileNotFoundError(f"missing allowlisted file: {rel}")
@@ -142,12 +157,18 @@ def main() -> int:
 
     result = check_manifest()
     if args.stage:
-        staged = stage_bundle(args.stage)
+        expected = sorted(allowlist_for_target(args.target))
+        staged = stage_bundle(args.stage, target=args.target)
         result["staged"] = staged
         result["stage_dir"] = str(args.stage)
         result["target"] = args.target
-        result["stage_ok"] = staged == sorted(PUBLISHED_ALLOWLIST)
-        result["ok"] = result["ok"] and result["stage_ok"]
+        result["expected_for_target"] = expected
+        result["stage_ok"] = staged == expected
+        # SkillHub uses a subset allowlist; clawhub/git surface still must match full allowlist.
+        if args.target == "clawhub":
+            result["ok"] = result["ok"] and result["stage_ok"]
+        else:
+            result["ok"] = result["stage_ok"] and not result.get("missing_files")
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
