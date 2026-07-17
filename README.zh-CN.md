@@ -53,7 +53,7 @@ Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹
 
 ## 验证
 
-2.0.4 发布门禁：
+2.0.5 发布门禁：
 
 ```bash
 python -B scripts/route_ablation_test.py

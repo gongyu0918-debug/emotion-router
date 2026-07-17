@@ -62,7 +62,7 @@ over-routing, but they are not complete keyword or profanity wordlists.
 
 ## Validation
 
-2.0.4 Markdown skill release gates:
+2.0.5 Markdown skill release gates:
 
 ```bash
 python -B scripts/route_ablation_test.py

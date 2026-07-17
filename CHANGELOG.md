@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.5 - 2026-07-17
+
+- republish of the 2.0.4 behavior surface after ClawHub left 2.0.4 untagged as latest
+- SkillHub packaging uses a subset allowlist without `LICENSE` (platform rejects that file type)
+- keep ClawHub full allowlist including `LICENSE`
+
 ## 2.0.4 - 2026-07-17
 
 - added a damage-control exception: permission challenge / unauthorized change / stop-what-you-did wins over urgency
