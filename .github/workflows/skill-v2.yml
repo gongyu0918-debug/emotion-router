@@ -17,11 +17,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Route contract and frozen fixture
-        run: python -B scripts/route_ablation_test.py
       - name: Markdown skill audit
         run: python -B scripts/markdown_skill_audit.py
       - name: Published bundle allowlist
         run: python -B scripts/bundle_manifest_check.py
+      - name: Bundle staging safety
+        run: python -B scripts/bundle_manifest_safety_test.py
       - name: Marketplace metadata audit
         run: python -B scripts/marketplace_tag_audit.py

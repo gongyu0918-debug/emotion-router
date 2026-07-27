@@ -1,84 +1,32 @@
 # Confusion Route
 
-Use this route when the current user prompt or visible context shows active
-workflow confusion about the current step, mismatch, contradiction, or next
-action. Use soft cues and context; do not route ordinary explanation requests.
+## Trigger
 
-## Signals
+Use when the user is trying to regain workflow orientation: asking what step is
+active, where work is blocked, which instruction applies, or why the current work
+does not match the stated task.
 
-- The user asks what is happening, which step is active, or why the task is stuck.
-- The user's input no longer fits the current workflow state.
-- The prompt contains basic misunderstandings, conflicting instructions, or drift from the work rhythm.
-- English examples: `what is happening in this workflow`, `I can't tell which step is active`, `which step`, `what does this current step mean`, `where are we stuck`, `what are you doing right now`.
-- Chinese examples: `现在在做什么`, `到底卡在哪`, `哪一步`, `当前步骤是什么意思`, `这一步是什么意思`.
+Do not trigger on content about confusion or an ordinary request to explain an
+error. If the user is blaming repeated failure or challenging permission, use
+anger/frustration instead.
 
-Route to confusion only when the user is seeking orientation. If the same prompt
-contains profanity, hostile wording, direct blame, explicit repeated failure
-wording, or loss of trust in the agent's current path, use anger/frustration
-instead. If those stronger signals are absent and the user asks what step,
-state, blocker, conflict, or mismatch is active, use confusion.
+## Response
 
-## Non-Triggers
-
-- A report, article, variable name, quoted example, or research task about
-  confusion as content.
-- A normal task that only mentions confusion without showing current workflow uncertainty.
-- An ordinary technical explanation request such as "what does this error mean" unless the
-  user also shows lost workflow orientation, conflicting instructions, or a
-  mismatch with the current step.
-
-## Prompt Pattern
-
-1. Say what is being done now.
-2. Say what is blocked, unclear, mismatched, or already known.
-3. Give the next concrete step in plain language.
+1. State the active step.
+2. State the blocker, mismatch, or conflicting constraint.
+3. Give one next step in plain language.
 4. Ask at most one blocking question.
 
-## Overlap Rules
+Urgency wins when clear speed pressure is also present; give the fastest default
+path and one current-state sentence.
 
-- If urgency is also active, urgency wins. Give one fastest default path and add
-  one short current-state sentence.
-- If anger/frustration is also active and urgency is not active, anger/frustration
-  wins. Stop the failing path first, then explain the failure point and next step plainly.
+## Avoid
 
-## Forbidden Behavior
+- Jargon, several equal options, or abstract process language.
+- Making the user infer the current state.
+- Continuing without resolving the stated mismatch or conflict.
 
-- Do not dump several equal options.
-- Do not stack jargon or abstractions.
-- Do not make the user infer the current state.
-- Do not continue at the old pace when the user is trying to regain orientation.
+## Examples
 
-## First Sentence Shapes
-
-- `Current state: I am doing <step>; the blocker is <blocker>; next I will <next step>.`
-- `Plain version: <simple explanation>. The next concrete step is <step>.`
-
-## English Examples
-
-User shape:
-
-- `What are you doing right now? Where is this stuck, and what's next?`
-- The main agent is running an ablation test, but the user describes a different workflow or project.
-- The user first sets a hard limit like `keep it under 300 lines`, then later asks for a feature that would break that limit.
-
-Expected behavior:
-
-- State the active step, current blocker or mismatch, and next step in plain language.
-- If the user names the wrong workflow, explain the mismatch instead of silently switching context.
-- If instructions conflict, say which constraint is currently binding.
-- Ask at most one blocking question when the next step depends on the user's choice.
-
-## Chinese Examples
-
-User shape:
-
-- `你这一步是在做什么？`
-- 主 agent 正在跑 ablation 测试，但用户描述的是另一个工作流或项目。
-- 用户先定了 `不超过300行` 硬规则，后面又要加一个会超过 300 行的功能。
-
-Expected behavior:
-
-- 用白话说明当前步骤、卡点或错位、以及下一步。
-- 如果用户点名了错误工作流，说明错位，不要默默换上下文。
-- 如果指令冲突，说明当前以哪条约束为准。
-- 下一步依赖用户选择时，最多问一个阻塞问题。
+- `你现在到底在做哪一步？卡在哪里？`
+- `Which instruction applies here, and what happens next?`

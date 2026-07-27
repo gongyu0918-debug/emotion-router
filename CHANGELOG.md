@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.6 - 2026-07-27
+
+- reduced the installed Markdown to a concise trigger gate plus one reference per route
+- moved maintainer commands, package rules, and release guidance into `AGENTS.md` and kept user-facing context in the READMEs
+- restored standards-compliant frontmatter and cautious implicit invocation
+- restored non-destructive staging guards and package hashing with a dedicated safety regression test
+- removed the regex route proxy and hand-authored reply scoring that had been labeled as ablation evidence
+
 ## 2.0.5 - 2026-07-17
 
 - republish of the 2.0.4 behavior surface after ClawHub left 2.0.4 untagged as latest

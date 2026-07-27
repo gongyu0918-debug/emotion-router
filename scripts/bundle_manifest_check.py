@@ -2,19 +2,16 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
-import re
 import shutil
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "SKILL.md"
 IGNORE_FILE = ROOT / ".clawhubignore"
-MANIFEST_ITEM_RE = re.compile(r"^\s*-\s+`([^`]+)`\s*$")
 
-# Explicit allowlist is the release source of truth for the ClawHub/GitHub skill surface.
 PUBLISHED_ALLOWLIST = [
     "LICENSE",
     "SKILL.md",
@@ -24,14 +21,7 @@ PUBLISHED_ALLOWLIST = [
     "references/urgency-route.md",
 ]
 
-# SkillHub.cn rejects LICENSE as an upload file type; keep license in SKILL.md frontmatter.
-SKILLHUB_ALLOWLIST = [
-    "SKILL.md",
-    "agents/openai.yaml",
-    "references/anger-frustration-route.md",
-    "references/confusion-route.md",
-    "references/urgency-route.md",
-]
+SKILLHUB_ALLOWLIST = [path for path in PUBLISHED_ALLOWLIST if path != "LICENSE"]
 
 
 def to_posix(path: Path) -> str:
@@ -58,7 +48,6 @@ def ignored(path: str, patterns: list[str]) -> bool:
 
 
 def ignore_derived_bundle_files() -> list[str]:
-    """Defense-in-depth view from .clawhubignore. Not the release source of truth."""
     patterns = read_ignore_patterns()
     files: list[str] = []
     for path in ROOT.rglob("*"):
@@ -70,105 +59,98 @@ def ignore_derived_bundle_files() -> list[str]:
             continue
         if "__pycache__" in parts or path.suffix == ".pyc":
             continue
-        if ignored(rel, patterns):
-            continue
-        files.append(rel)
-    return sorted(files)
-
-
-def documented_bundle_files() -> list[str]:
-    lines = SKILL.read_text(encoding="utf-8").splitlines()
-    inside = False
-    files: list[str] = []
-    for line in lines:
-        if line.strip() == "ClawHub publish now ships the Markdown-first skill bundle:":
-            inside = True
-            continue
-        if inside and line.startswith("The GitHub repository keeps"):
-            break
-        if inside:
-            match = MANIFEST_ITEM_RE.match(line)
-            if match:
-                files.append(match.group(1))
+        if not ignored(rel, patterns):
+            files.append(rel)
     return sorted(files)
 
 
 def allowlist_for_target(target: str) -> list[str]:
-    if target == "skillhub":
-        return list(SKILLHUB_ALLOWLIST)
-    return list(PUBLISHED_ALLOWLIST)
-
-
-def stage_bundle(stage_dir: Path, target: str = "clawhub") -> list[str]:
-    if stage_dir.exists():
-        shutil.rmtree(stage_dir)
-    stage_dir.mkdir(parents=True, exist_ok=True)
-    staged: list[str] = []
-    for rel in allowlist_for_target(target):
-        src = ROOT / rel
-        if not src.is_file():
-            raise FileNotFoundError(f"missing allowlisted file: {rel}")
-        dest = stage_dir / rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dest)
-        staged.append(rel)
-    return sorted(staged)
+    return list(SKILLHUB_ALLOWLIST if target == "skillhub" else PUBLISHED_ALLOWLIST)
 
 
 def check_manifest() -> dict[str, Any]:
-    allowlist = sorted(PUBLISHED_ALLOWLIST)
-    documented = documented_bundle_files()
-    ignore_derived = ignore_derived_bundle_files()
-    missing_files = [rel for rel in allowlist if not (ROOT / rel).is_file()]
-    ok = (
-        allowlist == documented
-        and allowlist == ignore_derived
-        and not missing_files
+    expected = sorted(PUBLISHED_ALLOWLIST)
+    actual = ignore_derived_bundle_files()
+    missing_sources = [rel for rel in expected if not (ROOT / rel).is_file()]
+    return {
+        "ok": actual == expected and not missing_sources,
+        "source_of_truth": "PUBLISHED_ALLOWLIST",
+        "actual": actual,
+        "expected": expected,
+        "missing_sources": missing_sources,
+        "extra_files": sorted(set(actual) - set(expected)),
+        "missing_files": sorted(set(expected) - set(actual)),
+    }
+
+
+def validate_stage_dir(output: Path) -> Path:
+    resolved = output.resolve()
+    if resolved == ROOT or resolved in ROOT.parents:
+        raise ValueError("refusing to stage over the repository or its ancestor")
+    release_root = (ROOT / ".release").resolve()
+    if ROOT in resolved.parents and release_root not in resolved.parents:
+        raise ValueError("repository-local staging must be under .release")
+    if resolved.exists():
+        if not resolved.is_dir():
+            raise ValueError(f"staging path is not a directory: {resolved}")
+        if any(resolved.iterdir()):
+            raise ValueError(f"staging directory is not empty: {resolved}")
+    return resolved
+
+
+def bundle_sha256(output: Path, files: list[str]) -> str:
+    digest = hashlib.sha256()
+    for relative in files:
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update((output / relative).read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def stage_bundle(output: Path, target: str = "clawhub") -> dict[str, Any]:
+    manifest = check_manifest()
+    if not manifest["ok"]:
+        raise ValueError("bundle manifest must pass before staging")
+
+    stage_dir = validate_stage_dir(output)
+    selected = sorted(allowlist_for_target(target))
+    stage_dir.mkdir(parents=True, exist_ok=True)
+    for relative in selected:
+        source = ROOT / relative
+        destination = stage_dir / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+
+    staged = sorted(
+        path.relative_to(stage_dir).as_posix()
+        for path in stage_dir.rglob("*")
+        if path.is_file()
     )
     return {
-        "ok": ok,
-        "source_of_truth": "PUBLISHED_ALLOWLIST",
-        "allowlist": allowlist,
-        "documented": documented,
-        "ignore_derived": ignore_derived,
-        "missing_files": missing_files,
-        "missing_from_docs": sorted(set(allowlist) - set(documented)),
-        "missing_from_allowlist": sorted(set(documented) - set(allowlist)),
-        "ignore_extra": sorted(set(ignore_derived) - set(allowlist)),
-        "ignore_missing": sorted(set(allowlist) - set(ignore_derived)),
-        # Back-compat keys used by markdown_skill_audit.
-        "actual": ignore_derived,
-        "actual_count": len(ignore_derived),
-        "documented_count": len(documented),
-        "missing_from_bundle": sorted(set(documented) - set(ignore_derived)),
+        "ok": staged == selected,
+        "target": target,
+        "output": str(stage_dir),
+        "files": staged,
+        "count": len(staged),
+        "sha256": bundle_sha256(stage_dir, staged),
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check or stage the published skill bundle.")
-    parser.add_argument("--stage", type=Path, help="Stage allowlisted files into this directory")
-    parser.add_argument(
-        "--target",
-        choices=("clawhub", "skillhub"),
-        default="clawhub",
-        help="Marketplace target label for staged output metadata",
-    )
+    parser = argparse.ArgumentParser(description="Validate or stage the explicit marketplace bundle allowlist.")
+    parser.add_argument("--stage", type=Path, help="Copy allowlisted files into a fresh or empty directory.")
+    parser.add_argument("--target", choices=("clawhub", "skillhub"), default="clawhub")
     args = parser.parse_args()
 
-    result = check_manifest()
     if args.stage:
-        expected = sorted(allowlist_for_target(args.target))
-        staged = stage_bundle(args.stage, target=args.target)
-        result["staged"] = staged
-        result["stage_dir"] = str(args.stage)
-        result["target"] = args.target
-        result["expected_for_target"] = expected
-        result["stage_ok"] = staged == expected
-        # SkillHub uses a subset allowlist; clawhub/git surface still must match full allowlist.
-        if args.target == "clawhub":
-            result["ok"] = result["ok"] and result["stage_ok"]
-        else:
-            result["ok"] = result["stage_ok"] and not result.get("missing_files")
+        try:
+            result = stage_bundle(args.stage, args.target)
+        except ValueError as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+            return 1
+    else:
+        result = check_manifest()
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1

@@ -2,81 +2,30 @@
 
 [English](./README.md) · [GitHub](https://github.com/gongyu0918-debug/emotion-router) · `clawhub install emotion-skill` · `skillhub install emotion-skill`
 
-面向 Coding Agent 的 Markdown-first 轻量压力路由 skill。触发边界只看当前 prompt：明确急迫措辞、强烈愤怒/挫败信号，或关于当前步骤、冲突、错位的工作流困惑。
+面向 Coding Agent 的轻量 Markdown 软路由，只处理当前工作中明确出现的急迫、强烈愤怒/挫败和工作流困惑。
 
-Agent 没有真实情绪。本 skill 读取的是用户侧压力信号，并把它转成 agent 下一步回复、工作顺序和验证方式。
+## 作用
 
-## 为什么值得装
+压力容易让 Agent 辩解、解释过度、猜测、跑偏或扩大范围。情绪路由只把当前压力转成三种简短工作策略：
 
-用户负面情绪和时间压力容易让模型进入不稳定工作流：防御、解释过度、猜测、跑偏或扩大范围。
+- **急迫**：以最小可用路径先完成用户点名的任务。
+- **愤怒/挫败**：停止失败路径，定位问题并给出最小修复。
+- **困惑**：用白话说明当前步骤、卡点和下一步。
 
-情绪路由只保留三条路线：
-
-- **急迫**：最快最小路径满足 prompt，再做最快最小验证。
-- **愤怒/挫败**：先止损，找出失败点，给最小修复路径。
-- **困惑**：说明现在正在做什么、当前卡点是什么、下一步是什么，用通俗语言恢复工作节奏。
-
-止损例外：如果用户质疑权限或未授权改动，即使同时很急，也走愤怒/挫败路由——先停手，再最小修复。
-
-## 结构
-
-市场发布包：
-
-- `SKILL.md`：触发边界、优先级和路由选择
-- `LICENSE`：包许可
-- `agents/openai.yaml`：界面元数据和默认调用提示
-- `references/urgency-route.md`：急迫 route 的信号、非触发边界、响应策略、冲突规则和示例
-- `references/anger-frustration-route.md`：愤怒/挫败 route 的信号、非触发边界、响应策略、冲突规则和示例
-- `references/confusion-route.md`：困惑 route 的信号、非触发边界、响应策略、冲突规则和示例
-
-GitHub 仓库额外保留：
-
-- `scripts/`：发布检查、审计和 legacy runtime 回归测试
-- `references/`：旧设计说明和不进入安装包的验证参考
-- `assets/`、`demo/`、`reports/`：校准材料、本地样例和测试证据
-
-发布 allowlist 以 `scripts/bundle_manifest_check.py` 为准；`.clawhubignore` 只做二次防护。
-
-## 使用方式
-
-在支持 skills 的 agent 中：
-
-```text
-Use $emotion-skill when the current prompt shows clear urgency wording, strong
-anger/frustration signals such as profanity or repeated failure/blame, or
-workflow confusion about the current step, conflict, or mismatch. Do not use it
-for ordinary tasks, neutral commands, ordinary technical explanations, or
-content-only emotion mentions.
-```
-
-Agent 应先读 `SKILL.md`，按优先级选择一个 route，然后只加载匹配的 route reference。触发线索足够明确，用于降低误触发；但它不是完整关键词表，也不是脏话词库。
-
-## 验证
-
-2.0.5 发布门禁：
-
-```bash
-python -B scripts/route_ablation_test.py
-python -B scripts/markdown_skill_audit.py
-python -B scripts/bundle_manifest_check.py
-python -B scripts/bundle_manifest_check.py --stage .release/clawhub --target clawhub
-python -B scripts/bundle_manifest_check.py --stage .release/skillhub --target skillhub
-python -B scripts/marketplace_tag_audit.py
-git diff --check
-```
-
-`route_ablation_test.py` 是 cue 契约代理 + 冻结范文打分，不是 live 模型基准。真实行为仍靠 subagent forward test。
-
-Legacy v1 runtime 回归可选，不作为 2.0.x skill 行为证据：
-
-```bash
-python -B scripts/smoke_test.py --strict
-```
+如果用户质疑权限或未授权改动，必须先停手，再考虑速度。
 
 ## 边界
 
-这是 skill，不是 plugin 或 runtime classifier。它不检查 AGENTS.md、长记忆、用户画像、隐藏历史或旧校准状态，只处理当前 prompt 和当前 context window。
+只读取当前 prompt 和可见 context，不分析用户画像、不读取长记忆，也不做情绪分类。引用文字、字段名、研究主题、中性命令和普通技术解释本身不会触发路由。
+
+触发词只是辅助 Agent 做语义判断的例子，不是完整关键词表或脏话库。
+
+## 安装包
+
+运行时包只包含 `SKILL.md`、`agents/openai.yaml` 和三个 route reference。ClawHub 额外包含 `LICENSE`；SkillHub 因平台文件类型限制不包含该文件。仓库里的脚本、报告、素材和旧设计文档只供维护，不是运行时指令。
+
+维护边界和验证命令见 [AGENTS.md](./AGENTS.md)。
 
 ## License
 
-MIT. See the [GitHub repository license](https://github.com/gongyu0918-debug/emotion-router/blob/main/LICENSE).
+MIT，见 [LICENSE](./LICENSE)。

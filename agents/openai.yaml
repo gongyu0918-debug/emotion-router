@@ -1,10 +1,7 @@
 interface:
   display_name: "Emotion Router"
-  short_description: "Cautious three-route soft router for coding agents with clear pressure signals."
-  default_prompt: "Use $emotion-skill when the current prompt shows clear urgency wording, strong anger/frustration signals such as profanity or repeated failure/blame, or workflow confusion about the current step, conflict, or mismatch. Read SKILL.md first; if it is only a topic, field name, neutral command, or ordinary technical explanation request, stop there and do ordinary work. If anger includes a permission challenge or unauthorized change, load the anger route even when urgency is present. Otherwise choose one route by priority and read exactly one matching reference."
-  version: "2.0.5"
-  author: "gongyu0918-debug"
-  license: "MIT"
+  short_description: "Three-route soft router for pressured coding-agent work."
+  default_prompt: "Use $emotion-skill to select one cautious route for clear urgency, strong anger/frustration, or active workflow confusion."
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
