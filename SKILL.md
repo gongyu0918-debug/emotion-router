@@ -1,6 +1,10 @@
 ---
 name: emotion-skill
-description: Markdown-first soft router for coding agents. Use when the current prompt or visible context shows clear urgency, strong anger/frustration toward the current work, or confusion about the active workflow. Do not use for ordinary tasks, neutral commands, technical explanations, or quoted/content-only emotion words.
+slug: emotion-skill
+displayName: 情绪路由
+summary: 面向 Coding Agent 的 Markdown-first 三路由软路由。仅当当前 prompt 或可见上下文中出现明确急迫、针对当前工作的强烈愤怒或挫败，或对正在进行的工作流感到困惑时使用；普通任务、中性命令、技术解释以及仅作为内容提及或引用的情绪词不触发。
+description: 面向 Coding Agent 的 Markdown-first 软路由。当前 prompt 或可见上下文明确表现出急迫、针对当前工作的强烈愤怒或挫败，或对正在进行的工作流感到困惑时使用。普通任务、中性命令、技术解释以及仅作为内容提及或引用的情绪词不触发。
+version: "2.0.6"
 license: MIT
 metadata:
   version: "2.0.6"
